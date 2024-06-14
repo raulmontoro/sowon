@@ -193,19 +193,6 @@ void argumentParser(int argc, char **argv, Config *config) {
             config->displayed_time = parse_time(argv[i]);
         }
     }
-}
-
-
-
-
-
-
-
-
-
-/********** CONFIGURATION **********/
-
-void defaultConfig(Config *config) {
 
     switch(config->mode) {
         case MODE_ASCENDING:
@@ -612,7 +599,7 @@ typedef enum {
 
 
 /*  event key down  compute */
-void keyDownCaseCompute(SDL_Window *window,
+void keyDownEventCompute(SDL_Window *window,
                         SDL_Texture *digits, 
                         Config *config, 
                         KeyDownEvent keydownevent) {
@@ -751,7 +738,6 @@ void eventLoop(int *quit,
 
 
 
-
 // UPDATE
 
 void wiggleCoolDown(Config *config) {
@@ -759,38 +745,42 @@ void wiggleCoolDown(Config *config) {
         config->wiggle_index++;
         config->wiggle_cooldown = WIGGLE_DURATION;
     }
-
-    config->wiggle_cooldown -= DELTA_TIME;
+    else {
+        config->wiggle_cooldown -= DELTA_TIME;
+    }
 }
 
 void updateTime(Config *config) {
-    switch (config->mode) {
-        case MODE_ASCENDING: {
-            config->displayed_time += DELTA_TIME;
-        } 
-        break;
-    
-        case MODE_COUNTDOWN: {
-            if (config->displayed_time > 1e-6) {
-                config->displayed_time -= DELTA_TIME;
+
+    if (!config->paused) {
+        switch (config->mode) {
+            case MODE_ASCENDING: {
+                config->displayed_time += DELTA_TIME;
             } 
-            else {
-                config->displayed_time = 0.0f;
-                if (config->exit_after_countdown) {
-                    quitSDL();
+            break;
+        
+            case MODE_COUNTDOWN: {
+                if (config->displayed_time > 1e-6) {
+                    config->displayed_time -= DELTA_TIME;
+                } 
+                else {
+                    config->displayed_time = 0.0f;
+                    if (config->exit_after_countdown) {
+                        quitSDL();
+                    }
                 }
-            }
-        } 
-        break;
-    
-        case MODE_CLOCK: {
-            time_t t = time(NULL);
-            struct tm *tm = localtime(&t);
-            config->displayed_time = tm->tm_sec
-                           + tm->tm_min  * 60.0f
-                           + tm->tm_hour * 60.0f * 60.0f;
-        } 
-        break;
+            } 
+            break;
+        
+            case MODE_CLOCK: {
+                time_t t = time(NULL);
+                struct tm *tm = localtime(&t);
+                config->displayed_time = tm->tm_sec
+                               + tm->tm_min  * 60.0f
+                               + tm->tm_hour * 60.0f * 60.0f;
+            } 
+            break;
+        }
     }
 }
 
@@ -804,8 +794,7 @@ void updateWindowResizeAndZoomInOut(SDL_Window *window, Config *config) {
 }
 
 
-void updatePenAndWiggle(Config *config) {
-    // pen
+void updatePen(Config *config) {
     initial_pen(config->w,
                 config->h,
                 config->user_scale,
@@ -813,11 +802,6 @@ void updatePenAndWiggle(Config *config) {
                 &config->pen_x, 
                 &config->pen_y);
     
-    wiggleCoolDown(config);
-    
-    if (!config->paused) {
-        updateTime(config);
-    }
 }
 
 // INFINITE LOOP
@@ -828,21 +812,25 @@ void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digit
         /*  events */
         KeyDownEvent keydownevent = NONE;
         eventLoop(&quit, config, &keydownevent);
-        keyDownCaseCompute(window, digits, config, keydownevent);
+        keyDownEventCompute(window, digits, config, keydownevent);
         
         /* time */
         char timestr[9];
         hoursMinutesSeconds(config, timestr);
-        timeInWindowTitle(window, config, timestr);
         
         /* render */
         backgroundColour(renderer);
         textureColour(digits, config);
         clearRenderer(renderer);
+
+        timeInWindowTitle(window, config, timestr);
         createRendering(renderer, digits, config, timestr);
         renderingToScreen(renderer);
+
         updateWindowResizeAndZoomInOut(window, config);
-        updatePenAndWiggle(config);
+        updatePen(config);
+        wiggleCoolDown(config);
+        updateTime(config);
 
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
 
@@ -858,7 +846,6 @@ int main(int argc, char **argv) {
     /* parsing */
     Config config;
     argumentParser(argc, argv, &config);
-    defaultConfig(&config);
     
     /* sdl  */
     SDL_Window *window;
