@@ -578,29 +578,88 @@ int quitSDL() {
 
 
 
+
+
+
+
 /*  EVENTS  */
+
+typedef enum {
+    NONE,
+    SPACE,
+    EQUALS,
+    MINUS,
+    ZERO,
+    SHIFTZERO,
+    F5,
+    F11
+}KeyDownEvent;
+
+
+/*  event key down  compute */
+void keyDownCaseCompute(SDL_Window *window,
+                        SDL_Texture *digits, 
+                        Config *config, 
+                        KeyDownEvent keydownevent) {
+
+    switch(keydownevent) {
+        case NONE:
+            break;
+
+        case SPACE:
+            pauseToggle(config);
+            break;
+
+        case EQUALS:
+            zoomInitial(config);
+            break;
+
+        case MINUS:
+            zoomOut(config);
+            break;
+
+        case ZERO:
+            zoomInitial(config);
+            break;
+
+        case SHIFTZERO:
+            zoomIn(config);
+            break;
+
+        case F5:
+            resetClock(config, digits);
+            break;
+        case F11:
+            fullScreenToggle(window);
+            break;
+    }
+}
+
+
+
 
 /*  event key down  */
 
-void keyDownCases(SDL_Event event, Config *config, SDL_Texture *digits, SDL_Window *window) {
+void keyDownCases(SDL_Event event, KeyDownEvent *keydownevent) {
+
     // https://www.libsdl.org/release/SDL-1.2.15/docs/html/sdlkey.html
     switch (event.key.keysym.sym) {
         case SDLK_SPACE: {
-            pauseToggle(config);
+            *keydownevent = SPACE;
         } 
         break;
 
         case SDLK_KP_PLUS:
 
         case SDLK_EQUALS: {
-            zoomInitial(config);
+            *keydownevent = EQUALS;
         } 
         break;
 
         case SDLK_KP_MINUS:
 
         case SDLK_MINUS: {
-            zoomOut(config);
+            *keydownevent = MINUS;
         } 
         break;
 
@@ -609,24 +668,25 @@ void keyDownCases(SDL_Event event, Config *config, SDL_Texture *digits, SDL_Wind
         // in a spanish keyboard, 'equals key' is <shift+0> for zoom in
         case SDLK_0: {
             if (event.key.keysym.mod & KMOD_SHIFT) {
-                zoomIn(config);
+                *keydownevent = SHIFTZERO;
             }
             else 
-                zoomInitial(config);
+                *keydownevent = ZERO;
         } 
         break;
 
         case SDLK_F5: {
-            resetClock(config, digits);
+            *keydownevent = F5;
         } 
         break;
 
         case SDLK_F11: {
-            fullScreenToggle(window);
+            *keydownevent = F11;
         } 
         break;
     }
 }
+
 
 /*  mouse wheel */
 
@@ -643,7 +703,10 @@ void mouseWheel(SDL_Event event, Config *config) {
 
 
 /* even loop    */
-void eventLoop(int *quit, Config *config, SDL_Window *window, SDL_Texture *digits) {
+void eventLoop(int *quit,
+               Config *config, 
+               KeyDownEvent *keydownevent) {
+
     SDL_Event event = {0};
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -652,7 +715,8 @@ void eventLoop(int *quit, Config *config, SDL_Window *window, SDL_Texture *digit
             } break;
 
             case SDL_KEYDOWN: {
-                keyDownCases(event, config, digits, window);
+                keyDownCases(event, keydownevent);
+
             } break;
 
             case SDL_MOUSEWHEEL: {
@@ -743,7 +807,10 @@ void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digit
     int quit = 0;
     while (!quit) {
 
-        eventLoop(&quit, config, window, digits);
+        /*  events */
+        KeyDownEvent keydownevent = NONE;
+        eventLoop(&quit, config, &keydownevent);
+        keyDownCaseCompute(window, digits, config, keydownevent);
         
         char str[9];
         hoursMinutesSeconds(config, str);
@@ -756,7 +823,6 @@ void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digit
         updateConfig(window, config);
 
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
-
 
     }
 }
@@ -771,7 +837,6 @@ int main(int argc, char **argv) {
     argumentParser(argc, argv, &config);
     defaultConfig(&config);
 
-
     initializeSDL();
 
     SDL_Window *window;
@@ -782,8 +847,6 @@ int main(int argc, char **argv) {
 
     SDL_Texture *digits;
     digits = createTextureFromFile(renderer);
-
-    
 
     infiniteLoop(window, renderer, digits, &config);
     
