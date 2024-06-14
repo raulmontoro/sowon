@@ -231,6 +231,7 @@ void defaultConfig(Config *config) {
 
 
 /***********  SDL *************/
+
 void initializeSDL() {
     secc(SDL_Init(SDL_INIT_VIDEO));
     secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
@@ -275,6 +276,19 @@ SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
     secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
     return digits;
 }
+
+
+void initSDL(SDL_Window **window, SDL_Renderer **renderer, SDL_Texture **digits) {
+    initializeSDL();
+    createWindow(window);
+    createRenderer(*window, renderer);
+    *digits = createTextureFromFile(*renderer);
+}
+
+
+
+
+
 
 
 void windowSize(SDL_Window *window, int *w, int *h) {
@@ -841,20 +855,16 @@ void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digit
 /*  MAIN    */
 int main(int argc, char **argv) {
     
+    /* parsing */
     Config config;
     argumentParser(argc, argv, &config);
     defaultConfig(&config);
-
-    initializeSDL();
-
+    
+    /* sdl  */
     SDL_Window *window;
-    createWindow(&window);
-
     SDL_Renderer *renderer;
-    createRenderer(window, &renderer);
-
     SDL_Texture *digits;
-    digits = createTextureFromFile(renderer);
+    initSDL(&window, &renderer, &digits);
 
     infiniteLoop(window, renderer, digits, &config);
     
