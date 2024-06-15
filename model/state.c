@@ -1,9 +1,6 @@
-
-/***********  STATE *************/
-
 typedef struct State {
     Mode mode;
-    float displayed_time;
+    float displaytime;
     float initialcountdownclock;
     int paused;
     int exit_count_down;
@@ -93,11 +90,11 @@ void initialState(Arguments arguments, State *state) {
 
         case MODE_COUNTDOWN:
             state->initialcountdownclock = arguments.initialcountdownclock;
-            state->displayed_time = state->initialcountdownclock; 
+            state->displaytime = state->initialcountdownclock; 
             break;
 
         case MODE_CLOCK:
-            localTime(&state->displayed_time);
+            localTime(&state->displaytime);
             break;
     }
 }
@@ -152,8 +149,3 @@ void zoomIn(State *state) {
 void zoomOut(State *state) {
     state->user_scale -= SCALE_FACTOR*state->user_scale;
 }
-
-
-
-
-

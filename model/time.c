@@ -1,7 +1,4 @@
-/********** TIME **********/
-
-
-void localTime(float *seconds) {
+void getLocalTime(float *seconds) {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
 
@@ -9,6 +6,20 @@ void localTime(float *seconds) {
                + tm->tm_min  * 60.0f
                + tm->tm_hour * 60.0f * 60.0f;
 }
+
+
+void setDisplayTime(State *state) {
+    state->displayed_time = 0.0f;
+}
+
+void increaseTime(State *state) {
+    state->displayed_time += DELTA_TIME;
+}
+
+void decreaseTime(State *state) {
+    state->displayed_time -= DELTA_TIME;
+}
+
 
 
 
@@ -25,6 +36,9 @@ void localTime(float *seconds) {
                     https://www.geeksforgeeks.org/program-count-digits-integer-3-different-methods/
 */
 void hoursMinutesSeconds(State *state, char timestr[9]) {
+
+        #define COLON_INDEX 10
+
         // TODO: support amount of hours >99
 
         const size_t time = (size_t) ceilf(fmaxf(state->displayed_time, 0.0f));
@@ -60,36 +74,5 @@ void hoursMinutesSeconds(State *state, char timestr[9]) {
         timestr[7] = secondsseconddigit; 
 
         timestr[8] = '\0';
-}
-
-
-
-void updateTime(State *state) {
-    if (!state->paused) {
-        switch (state->mode) {
-            case MODE_STOPWATCH: {
-                state->displayed_time += DELTA_TIME;
-            } 
-            break;
-        
-            case MODE_COUNTDOWN: {
-                if (state->displayed_time > 1e-6) {
-                    state->displayed_time -= DELTA_TIME;
-                } 
-                else {
-                    state->displayed_time = 0.0f;
-                    if (state->exit_count_down) {
-                        quitSDL();
-                    }
-                }
-            } 
-            break;
-        
-            case MODE_CLOCK: {
-                localTime(&state->displayed_time);
-            } 
-            break;
-        }
-    }
 }
 
