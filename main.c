@@ -586,8 +586,8 @@ int quitSDL() {
 
 /*  EVENTS  */
 
-typedef enum {
-    NONE,
+typedef enum KeyDownEvent {
+    NONEKEY,
     SPACE,
     EQUALS,
     MINUS,
@@ -595,8 +595,7 @@ typedef enum {
     SHIFTZERO,
     F5,
     F11
-}KeyDownEvent;
-
+} KeyDownEvent;
 
 /*  event key down  compute */
 void keyDownEventCompute(SDL_Window *window,
@@ -605,7 +604,7 @@ void keyDownEventCompute(SDL_Window *window,
                         KeyDownEvent keydownevent) {
 
     switch(keydownevent) {
-        case NONE:
+        case NONEKEY:
             break;
 
         case SPACE:
@@ -642,7 +641,7 @@ void keyDownEventCompute(SDL_Window *window,
 
 /*  event key down  */
 
-void keyDownCases(SDL_Event event, KeyDownEvent *keydownevent) {
+void keyDownEvent(SDL_Event event, KeyDownEvent *keydownevent) {
 
     // https://www.libsdl.org/release/SDL-1.2.15/docs/html/sdlkey.html
     switch (event.key.keysym.sym) {
@@ -690,15 +689,39 @@ void keyDownCases(SDL_Event event, KeyDownEvent *keydownevent) {
 }
 
 
-/*  mouse wheel */
+/*  MOUSE WHEEL EVENT */
 
-void mouseWheel(SDL_Event event, Config *config) {
+typedef enum MouseWheelEvent{
+    NONEWHEEL,
+    WHEELUP,
+    WHEELDOWN
+} MouseWheelEvent;
+
+
+void mouseWheelEvent(SDL_Event event, MouseWheelEvent *mousewheelevent) {
     if (SDL_GetModState() & KMOD_CTRL) {
         if (event.wheel.y > 0) {
-            config->user_scale += SCALE_FACTOR * config->user_scale;
-        } else if (event.wheel.y < 0) {
-            config->user_scale -= SCALE_FACTOR * config->user_scale;
+            *mousewheelevent = WHEELUP;
+        } 
+        else if (event.wheel.y < 0) {
+            *mousewheelevent = WHEELDOWN;
         }
+        else
+            *mousewheelevent = NONEWHEEL;
+    }
+}
+
+void mouseWheelCompute(MouseWheelEvent mousewheelevent, Config *config) {
+    switch(mousewheelevent) {
+        case NONEWHEEL:
+            break;
+
+        case WHEELUP:
+            config->user_scale += SCALE_FACTOR * config->user_scale;
+            break;
+        case WHEELDOWN:
+            config->user_scale -= SCALE_FACTOR * config->user_scale;
+            break;
     }
 }
 
@@ -706,8 +729,8 @@ void mouseWheel(SDL_Event event, Config *config) {
 
 /* even loop    */
 void eventLoop(int *quit,
-               Config *config, 
-               KeyDownEvent *keydownevent) {
+               KeyDownEvent *keydownevent,
+               MouseWheelEvent *mousewheelevent) {
 
     SDL_Event event = {0};
     while (SDL_PollEvent(&event)) {
@@ -717,12 +740,12 @@ void eventLoop(int *quit,
             } break;
 
             case SDL_KEYDOWN: {
-                keyDownCases(event, keydownevent);
+                keyDownEvent(event, keydownevent);
 
             } break;
 
             case SDL_MOUSEWHEEL: {
-                mouseWheel(event, config);
+                mouseWheelEvent(event, mousewheelevent);
             } break;
 
             default: {
@@ -805,25 +828,35 @@ void updatePen(Config *config) {
 }
 
 // INFINITE LOOP
-void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digits, Config *config) {
+void infiniteLoop(Config *config) {
+
+    /* sdl  */
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    SDL_Texture *digits;
+    initSDL(&window, &renderer, &digits);
+
+
+
     int quit = 0;
     while (!quit) {
 
         /*  events */
-        KeyDownEvent keydownevent = NONE;
-        eventLoop(&quit, config, &keydownevent);
+        KeyDownEvent keydownevent = NONEKEY;
+        MouseWheelEvent mousewheelevent = NONEWHEEL;
+        eventLoop(&quit, &keydownevent, &mousewheelevent);
         keyDownEventCompute(window, digits, config, keydownevent);
+        mouseWheelCompute(mousewheelevent, config);
         
         /* time */
         char timestr[9];
         hoursMinutesSeconds(config, timestr);
         
         /* render */
+        timeInWindowTitle(window, config, timestr);
         backgroundColour(renderer);
         textureColour(digits, config);
         clearRenderer(renderer);
-
-        timeInWindowTitle(window, config, timestr);
         createRendering(renderer, digits, config, timestr);
         renderingToScreen(renderer);
 
@@ -835,6 +868,8 @@ void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digit
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
 
     }
+
+    quitSDL();
 }
 
 
@@ -847,15 +882,8 @@ int main(int argc, char **argv) {
     Config config;
     argumentParser(argc, argv, &config);
     
-    /* sdl  */
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *digits;
-    initSDL(&window, &renderer, &digits);
-
-    infiniteLoop(window, renderer, digits, &config);
+    infiniteLoop(&config);
     
-    quitSDL();
 
     return 0;
 }
