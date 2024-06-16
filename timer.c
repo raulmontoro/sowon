@@ -4,14 +4,16 @@
 
 /*  REFERENCES 
     date and time c library 
-    https://en.cppreference.com/w/c/chrono
-    https://en.cppreference.com/w/c/chrono/timespec_get
 
-    hardware timer, sigalarm
-    https://stackoverflow.com/questions/3856841/using-hardware-timer-in-c
-    
-    getitimer()
-    https://man7.org/linux/man-pages/man2/setitimer.2.html
+        #include <time.h>
+        https://en.cppreference.com/w/c/chrono
+
+        #include <sys/time.h>
+        getitimer(), setitimer()
+        https://man7.org/linux/man-pages/man2/setitimer.2.html
+            get or set value of an interval timer     
+
+
 
     timer_create()
     https://man7.org/linux/man-pages/man2/timer_create.2.html
@@ -52,7 +54,7 @@
 sigaction
 
 
-/******************* CREATING TIMERS *******************/
+/******************* TIMER SETTING *******************/
 
 /*  signal to send on timer expiration
 */
@@ -63,10 +65,6 @@ struct sigevent sevp = {
     NULL,
     NULL,
 };
-
-
-
-
 
 
 
