@@ -54,32 +54,6 @@
 
 
 
-typedef enum {
-    MODE_ASCENDING = 0,
-    MODE_COUNTDOWN,
-    MODE_CLOCK,
-} Mode;
-
-typedef struct Config {
-    Mode mode;
-    float displayed_time;
-    float displayed_time_initial;
-    int paused;
-    int exit_after_countdown;
-    size_t wiggle_index;
-    float wiggle_cooldown;
-    float user_scale;
-    char prev_title[TITLE_CAP];
-    int p_flag;
-    int w;
-    int h;
-    float fit_scale;
-    int pen_x;
-    int pen_y;
-} Config;
-
-
-
 /********** ERROR HANDLER **********/
 
 void secc(int code)
@@ -150,56 +124,90 @@ float parse_time(const char *time) {
 }
 
 
-/* argument parser  */
-void argumentParser(int argc, char **argv, Config *config) {
+typedef enum Mode {
+    MODE_ASCENDING = 0,
+    MODE_COUNTDOWN,
+    MODE_CLOCK,
+} Mode;
 
+typedef struct ProgramState {
+    float displayed_time;
+    float displayed_time_initial;
+    int paused;
+    size_t wiggle_index;
+    float wiggle_cooldown;
+    float user_scale;
+    char prev_title[TITLE_CAP];
+    int w;
+    int h;
+    float fit_scale;
+    int pen_x;
+    int pen_y;
+} ProgramState;
+
+void programState() {
     // MODE_ASCENDING: stop watch 
-    *config = (Config){MODE_ASCENDING, 
-                       0.0f, 
-                       0.0f, 
-                       0, 
-                       0, 
-                       0, 
-                       WIGGLE_DURATION, 
-                       1.0f, 
-                       "hello world",
-                       0,
-                       TEXT_WIDTH,
-                       TEXT_HEIGHT,
-                       1.0f,
-                       0,
-                       0};
+    *programstate = (ProgramState){0.0f, 
+                                   0.0f, 
+                                   0, 
+                                   0, 
+                                   WIGGLE_DURATION, 
+                                   1.0f, 
+                                   "hello world",
+                                   TEXT_WIDTH,
+                                   TEXT_HEIGHT,
+                                   1.0f,
+                                   0,
+                                   0};
+
+}
 
 
+
+
+typedef struct MainArguments {
+    Mode mode;
+    int flag_p;
+    int flag_e;
+} MainArguments;
+
+
+/* argument parser  */
+void mainArgumentsParser(int argc, char **argv, MainArguments *mainarguments, ProgramState *programstate) {
     
+    /*  no arguments */
+    *mainarguments =(MainArguments){MODE_ASCENDING,
+                                    0,
+                                    0};
 
+    /* at least one argument */ 
     for (int i = 1; i < argc; ++i) {
         // pause
         if (strcmp(argv[i], "-p") == 0) {
-            config->p_flag = 1;
-            config->paused = 1;
+            mainarguments->flag_p = 1;
+            mainarguments->paused = 1;
         } 
         // exist
         else if (strcmp(argv[i], "-e") == 0) {
-            config->exit_after_countdown = 1;
+            mainarguments->flag_e = 1;
         }
         // time clock
         else if (strcmp(argv[i], "clock") == 0) {
-            config->mode = MODE_CLOCK;
+            mainarguments->mode = MODE_CLOCK;
         }
         // countdown
         else {
-            config->mode = MODE_COUNTDOWN;
-            config->displayed_time = parse_time(argv[i]);
+            mainarguments->mode = MODE_COUNTDOWN;
+            mainarguments->displayed_time = parse_time(argv[i]);
         }
     }
 
-    switch(config->mode) {
+    switch(mainarguments->mode) {
         case MODE_ASCENDING:
             break;
 
         case MODE_COUNTDOWN:
-            config->displayed_time_initial = config->displayed_time;
+            mainarguments->displayed_time_initial = mainarguments->displayed_time;
             break;
 
         case MODE_CLOCK:
@@ -558,7 +566,7 @@ void resetClock(Config *config, SDL_Texture *digits) {
         config->displayed_time = 0.0f;
         config->paused = 0;
         
-        if (config->p_flag) {
+        if (config->flag_p) {
             config->paused = 1;
         }
         else {
@@ -880,7 +888,7 @@ int main(int argc, char **argv) {
     
     /* parsing */
     Config config;
-    argumentParser(argc, argv, &config);
+    mainArgumentsParser(argc, argv, &config);
     
     infiniteLoop(&config);
     
