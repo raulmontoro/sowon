@@ -80,7 +80,7 @@ void secp(void *ptr)
 
 
 
-/********** PARSERS **********/
+/********** PARSER **********/
 
 /*  time parser     */
 float parse_time(const char *time) {
@@ -124,46 +124,16 @@ float parse_time(const char *time) {
 }
 
 
+
+
+/********** PARSER **********/
+
+
 typedef enum Mode {
     MODE_ASCENDING = 0,
     MODE_COUNTDOWN,
     MODE_CLOCK,
 } Mode;
-
-typedef struct ProgramState {
-    float displayed_time;
-    float displayed_time_initial;
-    int paused;
-    size_t wiggle_index;
-    float wiggle_cooldown;
-    float user_scale;
-    char prev_title[TITLE_CAP];
-    int w;
-    int h;
-    float fit_scale;
-    int pen_x;
-    int pen_y;
-} ProgramState;
-
-void programState() {
-    // MODE_ASCENDING: stop watch 
-    *programstate = (ProgramState){0.0f, 
-                                   0.0f, 
-                                   0, 
-                                   0, 
-                                   WIGGLE_DURATION, 
-                                   1.0f, 
-                                   "hello world",
-                                   TEXT_WIDTH,
-                                   TEXT_HEIGHT,
-                                   1.0f,
-                                   0,
-                                   0};
-
-}
-
-
-
 
 typedef struct MainArguments {
     Mode mode;
@@ -173,7 +143,9 @@ typedef struct MainArguments {
 
 
 /* argument parser  */
-void mainArgumentsParser(int argc, char **argv, MainArguments *mainarguments, ProgramState *programstate) {
+void mainArgumentsParser(int argc, char **argv,
+                         MainArguments *mainarguments, 
+                         ProgramState *programstate) {
     
     /*  no arguments */
     *mainarguments =(MainArguments){MODE_ASCENDING,
@@ -216,8 +188,51 @@ void mainArgumentsParser(int argc, char **argv, MainArguments *mainarguments, Pr
 }
 
 
+/***********  PROGRAM STATE *************/
 
 
+
+typedef struct ProgramState {
+    float displayed_time;
+    float displayed_time_initial;
+    int paused;
+    int exit_count_down;
+    size_t wiggle_index;
+    float wiggle_cooldown;
+    float user_scale;
+    char prev_title[TITLE_CAP];
+    int w;
+    int h;
+    float fit_scale;
+    int pen_x;
+    int pen_y;
+} ProgramState;
+
+void initialState(MainArguments mainarguments, ProgramState *programstate) {
+    // MODE_ASCENDING: stop watch 
+    *programstate = (ProgramState){0.0f, 
+                                   0.0f, 
+                                   0, 
+                                   0,
+                                   0, 
+                                   WIGGLE_DURATION, 
+                                   1.0f, 
+                                   "hello world",
+                                   TEXT_WIDTH,
+                                   TEXT_HEIGHT,
+                                   1.0f,
+                                   0,
+                                   0};
+    
+    programstate->paused = mainarguments.flag_p; 
+    programstate->exit_count_down = mainarguments.flag_e; 
+
+    if (mainarguments.mode == MODE_ASCENDING) {
+        programstate->displayed_time = 0.0f; 
+    }
+    else if (mainarguments.mode == MODE_COUNTDOWN) {
+    }
+}
 
 
 
@@ -763,7 +778,13 @@ void eventLoop(int *quit,
 }
 
 
-
+void localTime(&config) {
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    config->displayed_time = tm->tm_sec
+                   + tm->tm_min  * 60.0f
+                   + tm->tm_hour * 60.0f * 60.0f;
+}
 
 
 
@@ -781,22 +802,21 @@ void wiggleCoolDown(Config *config) {
     }
 }
 
-void updateTime(Config *config) {
-
-    if (!config->paused) {
-        switch (config->mode) {
+void updateTime(ProgramState *programstate) {
+    if (!programstate->paused) {
+        switch (programstate->mode) {
             case MODE_ASCENDING: {
-                config->displayed_time += DELTA_TIME;
+                programstate->displayed_time += DELTA_TIME;
             } 
             break;
         
             case MODE_COUNTDOWN: {
-                if (config->displayed_time > 1e-6) {
-                    config->displayed_time -= DELTA_TIME;
+                if (programstate->displayed_time > 1e-6) {
+                    programstate->displayed_time -= DELTA_TIME;
                 } 
                 else {
-                    config->displayed_time = 0.0f;
-                    if (config->exit_after_countdown) {
+                    programstate->displayed_time = 0.0f;
+                    if (programstate->exit_after_countdown) {
                         quitSDL();
                     }
                 }
@@ -804,11 +824,7 @@ void updateTime(Config *config) {
             break;
         
             case MODE_CLOCK: {
-                time_t t = time(NULL);
-                struct tm *tm = localtime(&t);
-                config->displayed_time = tm->tm_sec
-                               + tm->tm_min  * 60.0f
-                               + tm->tm_hour * 60.0f * 60.0f;
+                localTime(&programstate);
             } 
             break;
         }
@@ -887,8 +903,12 @@ void infiniteLoop(Config *config) {
 int main(int argc, char **argv) {
     
     /* parsing */
-    Config config;
-    mainArgumentsParser(argc, argv, &config);
+    MainArguments mainarguments;
+    mainArgumentsParser(argc, argv, &config, &mainarguments);
+    
+    /* initial state */
+    ProgramState programstate;
+    initialState(mainarguments, &programstate);
     
     infiniteLoop(&config);
     
