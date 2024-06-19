@@ -139,58 +139,71 @@ typedef struct MainArguments {
     Mode mode;
     int flag_p;
     int flag_e;
+    int initialclockcountdown;
 } MainArguments;
 
-
-/* argument parser  */
-void mainArgumentsParser(int argc, char **argv,
-                         MainArguments *mainarguments, 
-                         ProgramState *programstate) {
-    
-    /*  no arguments */
-    *mainarguments =(MainArguments){MODE_ASCENDING,
-                                    0,
-                                    0};
-
-    /* at least one argument */ 
-    for (int i = 1; i < argc; ++i) {
-        // pause
-        if (strcmp(argv[i], "-p") == 0) {
-            mainarguments->flag_p = 1;
-            mainarguments->paused = 1;
-        } 
-        // exist
-        else if (strcmp(argv[i], "-e") == 0) {
-            mainarguments->flag_e = 1;
-        }
-        // time clock
-        else if (strcmp(argv[i], "clock") == 0) {
-            mainarguments->mode = MODE_CLOCK;
-        }
-        // countdown
-        else {
-            mainarguments->mode = MODE_COUNTDOWN;
-            mainarguments->displayed_time = parse_time(argv[i]);
-        }
+int isNaturalNumber(char *argv) {
+    int a = 1;
+    while(a != 0 && *argv != '\0') {
+        a = *argv >= '0' && *argv <= '9';
+        ++argv;
     }
+    return a;
+}
 
-    switch(mainarguments->mode) {
-        case MODE_ASCENDING:
-            break;
-
-        case MODE_COUNTDOWN:
-            mainarguments->displayed_time_initial = mainarguments->displayed_time;
-            break;
-
-        case MODE_CLOCK:
-            break;
+int isString(char *argv) {
+    int a = 1;
+    while(a != 0 && *argv != '\0') {
+        a = *argv >= 'A' && *argv <= 'Z' &&
+            *argv >= 'a' && *argv <= 'z';
+        ++argv;
     }
+    return a;
 }
 
 
+/* argument parser  */
+void mainArgumentsParser(int argc,
+                         char **argv,
+                         MainArguments *mainarguments) {
+    
+    /*  default when no arguments */
+    *mainarguments =(MainArguments){MODE_ASCENDING,
+                                    0,
+                                    0
+                                    0};
+    /* at least one argument */ 
+    for (int i = 1; i < argc; ++i) {
+        if (isNatural(*argv+i)) {
+        }
+        
+        if (isString(*argv+i)) {
+            // pause
+            if (strcmp(argv[i], "-p") == 0) {
+                mainarguments->flag_p = 1;
+            } 
+            // exist
+            else if (strcmp(argv[i], "-e") == 0) {
+                mainarguments->flag_e = 1;
+            }
+            // time clock
+            else if (strcmp(argv[i], "clock") == 0) {
+                mainarguments->mode = MODE_CLOCK;
+            }
+            // countdown
+            else {
+                mainarguments->mode = MODE_COUNTDOWN;
+            }
+        }
+
+    }
+
+}
+
+
+
+
 /***********  PROGRAM STATE *************/
-
-
 
 typedef struct ProgramState {
     float displayed_time;
@@ -209,7 +222,8 @@ typedef struct ProgramState {
 } ProgramState;
 
 void initialState(MainArguments mainarguments, ProgramState *programstate) {
-    // MODE_ASCENDING: stop watch 
+
+    // default initial state for ascending mode when no arguments 
     *programstate = (ProgramState){0.0f, 
                                    0.0f, 
                                    0, 
@@ -232,6 +246,22 @@ void initialState(MainArguments mainarguments, ProgramState *programstate) {
     }
     else if (mainarguments.mode == MODE_COUNTDOWN) {
     }
+
+    mainarguments->displayed_time = parse_time(argv[i]);
+    mainarguments->paused = 1;
+
+    switch(mainarguments->mode) {
+        case MODE_ASCENDING:
+            break;
+
+        case MODE_COUNTDOWN:
+            mainarguments->displayed_time_initial = mainarguments->displayed_time;
+            break;
+
+        case MODE_CLOCK:
+            break;
+    }
+
 }
 
 
