@@ -93,12 +93,12 @@ typedef enum Mode {
     MODE_CLOCK,
 } Mode;
 
-typedef struct MainArguments {
+typedef struct Arguments {
     Mode mode;
     int flag_p;
     int flag_e;
-    int initialclockcountdown;
-} MainArguments;
+    float initialclockcountdown;  // float displayed_time_initial;
+} Arguments;
 
 
 
@@ -169,35 +169,35 @@ float parse_time(const char *time) {
 /* argument parser  */
 void mainArgumentsParser(int argc,
                          char **argv,
-                         MainArguments *mainarguments) {
+                         Arguments *arguments) {
     
     /*  default when no arguments */
-    *mainarguments =(MainArguments){MODE_ASCENDING,
+    *arguments =(Arguments){MODE_ASCENDING,
                                     0,
                                     0
                                     0};
     /* at least one argument */ 
     for (int i = 1; i < argc; ++i) {
         if (isNatural(*argv+i)) {
-            mainarguments->initialclockcountdown = parse_time(*argv);
+            arguments->initialclockcountdown = parse_time(*argv+i);
         }
 
         if (isString(*argv+i)) {
             // pause
             if (strcmp(argv[i], "-p") == 0) {
-                mainarguments->flag_p = 1;
+                arguments->flag_p = 1;
             } 
             // exist
             else if (strcmp(argv[i], "-e") == 0) {
-                mainarguments->flag_e = 1;
+                arguments->flag_e = 1;
             }
             // time clock
             else if (strcmp(argv[i], "clock") == 0) {
-                mainarguments->mode = MODE_CLOCK;
+                arguments->mode = MODE_CLOCK;
             }
             // countdown
             else {
-                mainarguments->mode = MODE_COUNTDOWN;
+                arguments->mode = MODE_COUNTDOWN;
             }
         }
 
@@ -210,60 +210,64 @@ void mainArgumentsParser(int argc,
 
 /***********  PROGRAM STATE *************/
 
-typedef struct ProgramState {
+typedef struct State {
     float displayed_time;
-    float displayed_time_initial;
     int paused;
     int exit_count_down;
+    
     size_t wiggle_index;
     float wiggle_cooldown;
-    float user_scale;
+
     char prev_title[TITLE_CAP];
+
+    /* current window width */
     int w;
+
+    /* current window height */
     int h;
+
     float fit_scale;
+    float user_scale;
+    
+    /* cartesian coordinates of next digit */
     int pen_x;
     int pen_y;
-} ProgramState;
 
-void initialState(MainArguments mainarguments, ProgramState *programstate) {
+} State;
+
+void initialState(Arguments arguments, State *state) {
 
     // default initial state for ascending mode when no arguments 
-    *programstate = (ProgramState){0.0f, 
-                                   0.0f, 
+    *state = (State){0.0f, 
                                    0, 
-                                   0,
+                                   0, 
                                    0, 
                                    WIGGLE_DURATION, 
-                                   1.0f, 
                                    "hello world",
                                    TEXT_WIDTH,
                                    TEXT_HEIGHT,
+                                   1.0f, 
                                    1.0f,
                                    0,
                                    0};
+
+    /*  flags   */
+    state->paused = arguments.flag_p; 
+    state->exit_count_down = arguments.flag_e; 
     
-    programstate->paused = mainarguments.flag_p; 
-    programstate->exit_count_down = mainarguments.flag_e; 
 
-    if (mainarguments.mode == MODE_ASCENDING) {
-        programstate->displayed_time = 0.0f; 
-    }
-    else if (mainarguments.mode == MODE_COUNTDOWN) {
-    }
-
-    mainarguments->displayed_time = parse_time(argv[i]);
-    mainarguments->paused = 1;
-
-    switch(mainarguments->mode) {
+    /*  mode    */
+    switch(arguments->mode) {
         case MODE_ASCENDING:
+            state->displayed_time = 0.0f; 
             break;
 
         case MODE_COUNTDOWN:
-            mainarguments->displayed_time_initial = mainarguments->displayed_time;
+            state->displayed_time = arguments.initialclockcountdown;
             break;
 
         case MODE_CLOCK:
+            localTime(&state->displayed_time);
             break;
     }
 
@@ -419,10 +423,10 @@ void render_digit_at(SDL_Renderer *renderer,
         number of digits
             https://www.geeksforgeeks.org/program-count-digits-integer-3-different-methods/
 */
-void hoursMinutesSeconds(Config *config, char timestr[9]) {
+void hoursMinutesSeconds(State *state, char timestr[9]) {
         // TODO: support amount of hours >99
 
-        const size_t time = (size_t) ceilf(fmaxf(config->displayed_time, 0.0f));
+        const size_t time = (size_t) ceilf(fmaxf(state->displayed_time, 0.0f));
         /*  hours   */
         const size_t hours = time/60/60;
         const size_t hoursfirstdigit = hours/10;
@@ -464,9 +468,9 @@ void backgroundColour(SDL_Renderer *renderer) {
         SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
 }
 
-void textureColour(SDL_Texture *digits, Config *config) {
+void textureColour(SDL_Texture *digits, State *state) {
         // texture colour, digits
-        if (config->paused) {
+        if (state->paused) {
             secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
         } else {
             secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
@@ -480,7 +484,7 @@ void clearRenderer(SDL_Renderer *renderer) {
 
 void createRendering(SDL_Renderer *renderer, 
                      SDL_Texture *digits, 
-                     Config *config, 
+                     State *state, 
                      char timestr[9]) {
 
         SDL_Rect src_rect;
@@ -489,11 +493,11 @@ void createRendering(SDL_Renderer *renderer,
 
         for (int i = 0; i<8; ++i) {
             srcRect(timestr[i],
-                    (config->wiggle_index + i)%WIGGLE_COUNT,
+                    (state->wiggle_index + i)%WIGGLE_COUNT,
                     &src_rect);
 
-            dstRect(&config->pen_x, config->pen_y,
-                    config->user_scale, config->fit_scale, 
+            dstRect(&state->pen_x, state->pen_y,
+                    state->user_scale, state->fit_scale, 
                     &dst_rect);
 
             render_digit_at(renderer, 
@@ -514,18 +518,18 @@ void createRendering(SDL_Renderer *renderer,
 
 
 
-void timeInWindowTitle(SDL_Window *window, Config *config, char timestr[9]) {
+void timeInWindowTitle(SDL_Window *window, State *state, char timestr[9]) {
 
         /*  print time as window's title */
         char title[TITLE_CAP] ="Hello World!";
         //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
         snprintf(title, sizeof(title), "%d%d:%d%d:%d%d - sowon", timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
 
-        if (strcmp(config->prev_title, title) != 0) {
+        if (strcmp(state->prev_title, title) != 0) {
             SDL_SetWindowTitle(window, title);
         }
 
-        memcpy(title, config->prev_title, TITLE_CAP);
+        memcpy(title, state->prev_title, TITLE_CAP);
 }
 
 void renderingToScreen(SDL_Renderer *renderer) {
@@ -587,43 +591,43 @@ void initial_pen(int w,
 
 /*  paused  */
 
-void pauseToggle(Config *config) {
-    config->paused = !config->paused;
+void pauseToggle(State *state) {
+    state->paused = !state->paused;
 }
 
 /*  zoom   */
 
-void zoomInitial(Config *config) {
-    config->user_scale = 1.0f;
+void zoomInitial(State *state) {
+    state->user_scale = 1.0f;
 }
 
 /* pre:
    post: zoom in, represente in 'user_scale'
 */
-void zoomIn(Config *config) {
-    config->user_scale += SCALE_FACTOR*config->user_scale;
+void zoomIn(State *state) {
+    state->user_scale += SCALE_FACTOR*state->user_scale;
 }
 
-void zoomOut(Config *config) {
-    config->user_scale -= SCALE_FACTOR*config->user_scale;
+void zoomOut(State *state) {
+    state->user_scale -= SCALE_FACTOR*state->user_scale;
 }
 
 
 /*  reset clock  */
 
-void resetClock(Config *config, SDL_Texture *digits) {
+void resetClock(State *state, SDL_Texture *digits) {
 
-        config->displayed_time = 0.0f;
-        config->paused = 0;
+        state->displayed_time = 0.0f;
+        state->paused = 0;
         
-        if (config->flag_p) {
-            config->paused = 1;
+        if (state->flag_p) {
+            state->paused = 1;
         }
         else {
-            config->displayed_time = config->displayed_time_initial;
+            state->displayed_time = state->displayed_time_initial;
         }
 
-        if (config->paused) {
+        if (state->paused) {
             secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
         }
         else {
@@ -658,7 +662,7 @@ typedef enum KeyDownEvent {
 /*  event key down  compute */
 void keyDownEventCompute(SDL_Window *window,
                         SDL_Texture *digits, 
-                        Config *config, 
+                        State *state, 
                         KeyDownEvent keydownevent) {
 
     switch(keydownevent) {
@@ -666,27 +670,27 @@ void keyDownEventCompute(SDL_Window *window,
             break;
 
         case SPACE:
-            pauseToggle(config);
+            pauseToggle(state);
             break;
 
         case EQUALS:
-            zoomInitial(config);
+            zoomInitial(state);
             break;
 
         case MINUS:
-            zoomOut(config);
+            zoomOut(state);
             break;
 
         case ZERO:
-            zoomInitial(config);
+            zoomInitial(state);
             break;
 
         case SHIFTZERO:
-            zoomIn(config);
+            zoomIn(state);
             break;
 
         case F5:
-            resetClock(config, digits);
+            resetClock(state, digits);
             break;
         case F11:
             fullScreenToggle(window);
@@ -769,16 +773,16 @@ void mouseWheelEvent(SDL_Event event, MouseWheelEvent *mousewheelevent) {
     }
 }
 
-void mouseWheelCompute(MouseWheelEvent mousewheelevent, Config *config) {
+void mouseWheelCompute(MouseWheelEvent mousewheelevent, State *state) {
     switch(mousewheelevent) {
         case NONEWHEEL:
             break;
 
         case WHEELUP:
-            config->user_scale += SCALE_FACTOR * config->user_scale;
+            state->user_scale += SCALE_FACTOR * state->user_scale;
             break;
         case WHEELDOWN:
-            config->user_scale -= SCALE_FACTOR * config->user_scale;
+            state->user_scale -= SCALE_FACTOR * state->user_scale;
             break;
     }
 }
@@ -813,12 +817,13 @@ void eventLoop(int *quit,
 }
 
 
-void localTime(&config) {
+void localTime(float *seconds) {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
-    config->displayed_time = tm->tm_sec
-                   + tm->tm_min  * 60.0f
-                   + tm->tm_hour * 60.0f * 60.0f;
+
+    *seconds = tm->tm_sec
+               + tm->tm_min  * 60.0f
+               + tm->tm_hour * 60.0f * 60.0f;
 }
 
 
@@ -827,31 +832,31 @@ void localTime(&config) {
 
 // UPDATE
 
-void wiggleCoolDown(Config *config) {
-    if (config->wiggle_cooldown <= 0.0f) {
-        config->wiggle_index++;
-        config->wiggle_cooldown = WIGGLE_DURATION;
+void wiggleCoolDown(State *state) {
+    if (state->wiggle_cooldown <= 0.0f) {
+        state->wiggle_index++;
+        state->wiggle_cooldown = WIGGLE_DURATION;
     }
     else {
-        config->wiggle_cooldown -= DELTA_TIME;
+        state->wiggle_cooldown -= DELTA_TIME;
     }
 }
 
-void updateTime(ProgramState *programstate) {
-    if (!programstate->paused) {
-        switch (programstate->mode) {
+void updateTime(State *state) {
+    if (!state->paused) {
+        switch (state->mode) {
             case MODE_ASCENDING: {
-                programstate->displayed_time += DELTA_TIME;
+                state->displayed_time += DELTA_TIME;
             } 
             break;
         
             case MODE_COUNTDOWN: {
-                if (programstate->displayed_time > 1e-6) {
-                    programstate->displayed_time -= DELTA_TIME;
+                if (state->displayed_time > 1e-6) {
+                    state->displayed_time -= DELTA_TIME;
                 } 
                 else {
-                    programstate->displayed_time = 0.0f;
-                    if (programstate->exit_after_countdown) {
+                    state->displayed_time = 0.0f;
+                    if (state->exit_after_countdown) {
                         quitSDL();
                     }
                 }
@@ -859,35 +864,35 @@ void updateTime(ProgramState *programstate) {
             break;
         
             case MODE_CLOCK: {
-                localTime(&programstate);
+                localTime(&state);
             } 
             break;
         }
     }
 }
 
-void updateWindowResizeAndZoomInOut(SDL_Window *window, Config *config) {
+void updateWindowResizeAndZoomInOut(SDL_Window *window, State *state) {
     // window width and height
-    windowSize(window, &config->w, &config->h);
+    windowSize(window, &state->w, &state->h);
     
     // widow resize ratio
-    fitScale(config->w, config->h, &config->fit_scale);
+    fitScale(state->w, state->h, &state->fit_scale);
         
 }
 
 
-void updatePen(Config *config) {
-    initial_pen(config->w,
-                config->h,
-                config->user_scale,
-                config->fit_scale,
-                &config->pen_x, 
-                &config->pen_y);
+void updatePen(State *state) {
+    initial_pen(state->w,
+                state->h,
+                state->user_scale,
+                state->fit_scale,
+                &state->pen_x, 
+                &state->pen_y);
     
 }
 
 // INFINITE LOOP
-void infiniteLoop(Config *config) {
+void infiniteLoop(State *state) {
 
     /* sdl  */
     SDL_Window *window;
@@ -904,25 +909,25 @@ void infiniteLoop(Config *config) {
         KeyDownEvent keydownevent = NONEKEY;
         MouseWheelEvent mousewheelevent = NONEWHEEL;
         eventLoop(&quit, &keydownevent, &mousewheelevent);
-        keyDownEventCompute(window, digits, config, keydownevent);
-        mouseWheelCompute(mousewheelevent, config);
+        keyDownEventCompute(window, digits, state, keydownevent);
+        mouseWheelCompute(mousewheelevent, state);
         
         /* time */
         char timestr[9];
-        hoursMinutesSeconds(config, timestr);
+        hoursMinutesSeconds(state, timestr);
         
         /* render */
-        timeInWindowTitle(window, config, timestr);
+        timeInWindowTitle(window, state, timestr);
         backgroundColour(renderer);
-        textureColour(digits, config);
+        textureColour(digits, state);
         clearRenderer(renderer);
-        createRendering(renderer, digits, config, timestr);
+        createRendering(renderer, digits, state, timestr);
         renderingToScreen(renderer);
 
-        updateWindowResizeAndZoomInOut(window, config);
-        updatePen(config);
-        wiggleCoolDown(config);
-        updateTime(config);
+        updateWindowResizeAndZoomInOut(window, state);
+        updatePen(state);
+        wiggleCoolDown(state);
+        updateTime(state);
 
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
 
@@ -938,15 +943,14 @@ void infiniteLoop(Config *config) {
 int main(int argc, char **argv) {
     
     /* parsing */
-    MainArguments mainarguments;
-    mainArgumentsParser(argc, argv, &config, &mainarguments);
+    Arguments arguments;
+    mainArgumentsParser(argc, argv, &state, &arguments);
     
     /* initial state */
-    ProgramState programstate;
-    initialState(mainarguments, &programstate);
+    State state;
+    initialState(arguments, &state);
     
-    infiniteLoop(&config);
+    infiniteLoop(&state);
     
-
     return 0;
 }
