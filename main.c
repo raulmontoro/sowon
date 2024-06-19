@@ -80,7 +80,46 @@ void secp(void *ptr)
 
 
 
+
+
+
+
 /********** PARSER **********/
+
+
+typedef enum Mode {
+    MODE_ASCENDING = 0,
+    MODE_COUNTDOWN,
+    MODE_CLOCK,
+} Mode;
+
+typedef struct MainArguments {
+    Mode mode;
+    int flag_p;
+    int flag_e;
+    int initialclockcountdown;
+} MainArguments;
+
+
+
+int isNaturalNumber(char *argv) {
+    int a = 1;
+    while(a != 0 && *argv != '\0') {
+        a = *argv >= '0' && *argv <= '9';
+        ++argv;
+    }
+    return a;
+}
+
+int isString(char *argv) {
+    int a = 1;
+    while(a != 0 && *argv != '\0') {
+        a = *argv >= 'A' && *argv <= 'Z' &&
+            *argv >= 'a' && *argv <= 'z';
+        ++argv;
+    }
+    return a;
+}
 
 /*  time parser     */
 float parse_time(const char *time) {
@@ -88,6 +127,8 @@ float parse_time(const char *time) {
 
     while (*time) {
         char *endptr = NULL;
+
+        /* string to float */
         float x = strtof(time, &endptr);
 
         if (time == endptr) {
@@ -117,48 +158,11 @@ float parse_time(const char *time) {
         }
 
         time = endptr;
-        if (*time) time += 1;
+        if (*time) 
+            time += 1;
     }
 
     return result;
-}
-
-
-
-
-/********** PARSER **********/
-
-
-typedef enum Mode {
-    MODE_ASCENDING = 0,
-    MODE_COUNTDOWN,
-    MODE_CLOCK,
-} Mode;
-
-typedef struct MainArguments {
-    Mode mode;
-    int flag_p;
-    int flag_e;
-    int initialclockcountdown;
-} MainArguments;
-
-int isNaturalNumber(char *argv) {
-    int a = 1;
-    while(a != 0 && *argv != '\0') {
-        a = *argv >= '0' && *argv <= '9';
-        ++argv;
-    }
-    return a;
-}
-
-int isString(char *argv) {
-    int a = 1;
-    while(a != 0 && *argv != '\0') {
-        a = *argv >= 'A' && *argv <= 'Z' &&
-            *argv >= 'a' && *argv <= 'z';
-        ++argv;
-    }
-    return a;
 }
 
 
@@ -175,8 +179,9 @@ void mainArgumentsParser(int argc,
     /* at least one argument */ 
     for (int i = 1; i < argc; ++i) {
         if (isNatural(*argv+i)) {
+            mainarguments->initialclockcountdown = parse_time(*argv);
         }
-        
+
         if (isString(*argv+i)) {
             // pause
             if (strcmp(argv[i], "-p") == 0) {
