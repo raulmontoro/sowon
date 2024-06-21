@@ -109,29 +109,11 @@ typedef struct Arguments {
     Mode mode;
     int flag_p;
     int flag_e;
-    float initialclockcountdown;  // float displayed_time_initial;
+    float initialascendingclock;
+    float initialcountdownclock;  // float displayed_time_initial;
 } Arguments;
 
 
-
-int isNatural(char *argv) {
-    int a = 1;
-    while(a != 0 && *argv != '\0') {
-        a = *argv >= '0' && *argv <= '9';
-        ++argv;
-    }
-    return a;
-}
-
-int isString(char *argv) {
-    int a = 1;
-    while(a != 0 && *argv != '\0') {
-        a = *argv >= 'A' && *argv <= 'Z' &&
-            *argv >= 'a' && *argv <= 'z';
-        ++argv;
-    }
-    return a;
-}
 
 /*  time parser     */
 float parse_time(const char *time) {
@@ -187,15 +169,12 @@ void mainParser(int argc,
     *arguments =(Arguments){MODE_ASCENDING,
                             0,
                             0,
-                            0};
+                            0,
+                            5*60};
 
     /* at least one argument */ 
     for (int i = 1; i < argc; ++i) {
-        if (isNatural(*argv+i)) {
-            arguments->initialclockcountdown = parse_time(*argv+i);
-        }
 
-        else if (isString(*argv+i)) {
             // pause
             if (strcmp(argv[i], "-p") == 0) {
                 arguments->flag_p = 1;
@@ -204,6 +183,16 @@ void mainParser(int argc,
             else if (strcmp(argv[i], "-e") == 0) {
                 arguments->flag_e = 1;
             }
+            else if (strcmp(argv[i], "ascending") == 0) {
+                arguments->mode = MODE_ASCENDING;
+                arguments->initialascendingclock = parse_time(argv[i+1]);
+                ++i;
+            }
+            else if (strcmp(argv[i], "countdown") == 0) {
+                arguments->mode = MODE_COUNTDOWN;
+                arguments->initialcountdownclock= parse_time(argv[i+1]);
+                ++i;
+            }
             // time clock
             else if (strcmp(argv[i], "clock") == 0) {
                 arguments->mode = MODE_CLOCK;
@@ -211,9 +200,8 @@ void mainParser(int argc,
             // countdown
             else {
                 arguments->mode = MODE_COUNTDOWN;
+                arguments->initialcountdownclock = parse_time(argv[i]);
             }
-        }
-
     }
 }
 
@@ -275,7 +263,7 @@ void initialState(Arguments arguments, State *state) {
             break;
 
         case MODE_COUNTDOWN:
-            state->displayed_time = arguments.initialclockcountdown;
+            state->displayed_time = arguments.initialcountdownclock;
             break;
 
         case MODE_CLOCK:
@@ -908,7 +896,8 @@ void infiniteLoop(Arguments arguments, State *state) {
 
 
 
-/*  MAIN    */
+/********** MAIN **********/
+
 int main(int argc, char **argv) {
     
     /* parsing */
@@ -919,6 +908,7 @@ int main(int argc, char **argv) {
     State state;
     initialState(arguments, &state);
     
+    /*  loop */    
     infiniteLoop(arguments, &state);
     
     return 0;
