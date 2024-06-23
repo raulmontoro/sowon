@@ -261,14 +261,13 @@ void initialState(Arguments arguments, State *state) {
     
 
     /*  mode    */
-    switch(arguments.mode) {
+    switch(state->mode) {
         case MODE_ASCENDING:
-            state->displayed_time = 0.0f; 
             break;
 
         case MODE_COUNTDOWN:
             state->initialcountdownclock = arguments.initialcountdownclock;
-            state->displayed_time = arguments.initialcountdownclock; 
+            state->displayed_time = state->initialcountdownclock; 
             break;
 
         case MODE_CLOCK:
