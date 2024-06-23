@@ -208,10 +208,12 @@ void mainParser(int argc,
 
 
 
-/***********  PROGRAM STATE *************/
+/***********  STATE *************/
 
 typedef struct State {
+    Mode mode;
     float displayed_time;
+    float initialcountdownclock;
     int paused;
     int exit_count_down;
     
@@ -238,20 +240,23 @@ typedef struct State {
 void initialState(Arguments arguments, State *state) {
 
     // default initial state for ascending mode when no arguments 
-    *state = (State){0.0f, 
-                                   0, 
-                                   0, 
-                                   0, 
-                                   WIGGLE_DURATION, 
-                                   "hello world",
-                                   TEXT_WIDTH,
-                                   TEXT_HEIGHT,
-                                   1.0f, 
-                                   1.0f,
-                                   0,
-                                   0};
+    *state = (State){MODE_ASCENDING,
+                     0.0f, 
+                     0.0f,
+                     0, 
+                     0, 
+                     0, 
+                     WIGGLE_DURATION, 
+                     "hello world",
+                     TEXT_WIDTH,
+                     TEXT_HEIGHT,
+                     1.0f, 
+                     1.0f,
+                     0,
+                     0};
 
     /*  flags   */
+    state->mode = arguments.mode;
     state->paused = arguments.flag_p; 
     state->exit_count_down = arguments.flag_e; 
     
@@ -263,7 +268,8 @@ void initialState(Arguments arguments, State *state) {
             break;
 
         case MODE_COUNTDOWN:
-            state->displayed_time = arguments.initialcountdownclock;
+            state->initialcountdownclock = arguments.initialcountdownclock;
+            state->displayed_time = initialcountdownclock; 
             break;
 
         case MODE_CLOCK:
@@ -321,7 +327,14 @@ SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
     SDL_Texture *digits = SDL_CreateTextureFromSurface(renderer, image_surface);
 
     secp(digits);
-    secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
+
+    if (state->paused) {
+        secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
+    }
+    else {
+        secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
+    }
+
     return digits;
 }
 
@@ -412,53 +425,6 @@ void render_digit_at(SDL_Renderer *renderer,
 }
 
 
-/*  B   
-            https://stackoverflow.com/questions/10279718/append-char-to-string-in-c
-            https://www.w3schools.com/c/c_strings.php
-
-        iteration over a c-string
-            https://stackoverflow.com/questions/3213827/how-to-iterate-over-a-string-in-c
-
-        number of digits
-            https://www.geeksforgeeks.org/program-count-digits-integer-3-different-methods/
-*/
-void hoursMinutesSeconds(State *state, char timestr[9]) {
-        // TODO: support amount of hours >99
-
-        const size_t time = (size_t) ceilf(fmaxf(state->displayed_time, 0.0f));
-        /*  hours   */
-        const size_t hours = time/60/60;
-        const size_t hoursfirstdigit = hours/10;
-        const size_t hoursseconddigit = hours%10;
-        
-        /*  minutes */
-        const size_t minutes = time/60%60;
-        const size_t minutesfirstdigit = minutes/10;
-        const size_t minutesseconddigit = minutes%10;
-        
-        /*  seconds */
-        const size_t seconds = time % 60;
-        const size_t secondsfirstdigit = seconds/10;
-        const size_t secondsseconddigit = seconds%10;
-        
-        timestr[0] = hoursfirstdigit; 
-
-        timestr[1] = hoursseconddigit; 
-
-        timestr[2] = COLON_INDEX;
-
-        timestr[3] = minutesfirstdigit; 
-
-        timestr[4] = minutesseconddigit; 
-
-        timestr[5] = COLON_INDEX;
-
-        timestr[6] = secondsfirstdigit; 
-
-        timestr[7] = secondsseconddigit; 
-
-        timestr[8] = '\0';
-}
 
 
 
@@ -641,7 +607,8 @@ typedef enum ClockEvent {
 
 /*  event key down  compute */
 void clockeventCompute(SDL_Window *window,
-                        Arguments arguments, State *state, 
+                        State *initstate,
+                        State *state, 
                         ClockEvent clockevent) {
 
     switch(clockevent) {
@@ -669,7 +636,7 @@ void clockeventCompute(SDL_Window *window,
             break;
 
         case F5:
-            initialState(arguments, state);
+            state = initstate;
             break;
         case F11:
             fullScreenToggle(window);
@@ -783,8 +750,6 @@ void eventLoop(int *quit,
 
 
 
-// UPDATE
-
 void wiggleCoolDown(State *state) {
     if (state->wiggle_cooldown <= 0.0f) {
         state->wiggle_index++;
@@ -795,9 +760,70 @@ void wiggleCoolDown(State *state) {
     }
 }
 
-void updateTime(Arguments arguments, State *state) {
+
+
+
+
+
+
+
+/********** TIME **********/
+
+/*  pre:
+    post:       float to char
+
+    notes:      https://stackoverflow.com/questions/10279718/append-char-to-string-in-c
+                https://www.w3schools.com/c/c_strings.php
+
+                iteration over a c-string
+                    https://stackoverflow.com/questions/3213827/how-to-iterate-over-a-string-in-c
+
+                number of digits
+                    https://www.geeksforgeeks.org/program-count-digits-integer-3-different-methods/
+*/
+void hoursMinutesSeconds(State *state, char timestr[9]) {
+        // TODO: support amount of hours >99
+
+        const size_t time = (size_t) ceilf(fmaxf(state->displayed_time, 0.0f));
+        /*  hours   */
+        const size_t hours = time/60/60;
+        const size_t hoursfirstdigit = hours/10;
+        const size_t hoursseconddigit = hours%10;
+        
+        /*  minutes */
+        const size_t minutes = time/60%60;
+        const size_t minutesfirstdigit = minutes/10;
+        const size_t minutesseconddigit = minutes%10;
+        
+        /*  seconds */
+        const size_t seconds = time % 60;
+        const size_t secondsfirstdigit = seconds/10;
+        const size_t secondsseconddigit = seconds%10;
+        
+        timestr[0] = hoursfirstdigit; 
+
+        timestr[1] = hoursseconddigit; 
+
+        timestr[2] = COLON_INDEX;
+
+        timestr[3] = minutesfirstdigit; 
+
+        timestr[4] = minutesseconddigit; 
+
+        timestr[5] = COLON_INDEX;
+
+        timestr[6] = secondsfirstdigit; 
+
+        timestr[7] = secondsseconddigit; 
+
+        timestr[8] = '\0';
+}
+
+
+
+void updateTime(State *state) {
     if (!state->paused) {
-        switch (arguments.mode) {
+        switch (state->paused) {
             case MODE_ASCENDING: {
                 state->displayed_time += DELTA_TIME;
             } 
@@ -824,6 +850,13 @@ void updateTime(Arguments arguments, State *state) {
     }
 }
 
+
+
+
+
+/********** WINDOW **********/
+
+
 void updateWindowResizeAndZoomInOut(SDL_Window *window, State *state) {
     // window width and height
     windowSize(window, &state->w, &state->h);
@@ -845,7 +878,7 @@ void updatePen(State *state) {
 }
 
 // INFINITE LOOP
-void infiniteLoop(Arguments arguments, State *state) {
+void infiniteLoop(State *initstate) {
 
     /* sdl  */
     SDL_Window *window;
@@ -853,23 +886,13 @@ void infiniteLoop(Arguments arguments, State *state) {
     SDL_Texture *digits;
     initSDL(&window, &renderer, &digits);
 
-        if (state->paused) {
-            secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
-        }
-        else {
-            secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
-        }
-
+    State state = *initstate;
 
     int quit = 0;
     while (!quit) {
 
-        /*  events */
-        ClockEvent clockevent = NONE;
-        eventLoop(&quit, &clockevent);
-        clockeventCompute(window, arguments, state, clockevent);
-        
-        /* time */
+        /*  time string 00:00:00\0 
+        */
         char timestr[9];
         hoursMinutesSeconds(state, timestr);
         
@@ -880,11 +903,21 @@ void infiniteLoop(Arguments arguments, State *state) {
         clearRenderer(renderer);
         createRendering(renderer, digits, state, timestr);
         renderingToScreen(renderer);
+        
 
+
+        /*  events */
+        ClockEvent clockevent = NONE;
+        eventLoop(&quit, &clockevent);
+        clockeventCompute(window, initstate, state, clockevent);
+
+
+        /* update   */
         updateWindowResizeAndZoomInOut(window, state);
         updatePen(state);
         wiggleCoolDown(state);
-        updateTime(arguments, state);
+        updateTime(state);
+        
 
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
 
@@ -905,11 +938,11 @@ int main(int argc, char **argv) {
     mainParser(argc, argv, &arguments);
     
     /* initial state */
-    State state;
-    initialState(arguments, &state);
+    State initstate;
+    initialState(arguments, &initstate);
     
     /*  loop */    
-    infiniteLoop(arguments, &state);
+    infiniteLoop(&initstate);
     
     return 0;
-}
+WINDOW}
