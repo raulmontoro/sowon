@@ -193,19 +193,6 @@ void argumentParser(int argc, char **argv, Config *config) {
             config->displayed_time = parse_time(argv[i]);
         }
     }
-}
-
-
-
-
-
-
-
-
-
-/********** CONFIGURATION **********/
-
-void defaultConfig(Config *config) {
 
     switch(config->mode) {
         case MODE_ASCENDING:
@@ -231,6 +218,7 @@ void defaultConfig(Config *config) {
 
 
 /***********  SDL *************/
+
 void initializeSDL() {
     secc(SDL_Init(SDL_INIT_VIDEO));
     secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
@@ -275,6 +263,19 @@ SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
     secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
     return digits;
 }
+
+
+void initSDL(SDL_Window **window, SDL_Renderer **renderer, SDL_Texture **digits) {
+    initializeSDL();
+    createWindow(window);
+    createRenderer(*window, renderer);
+    *digits = createTextureFromFile(*renderer);
+}
+
+
+
+
+
 
 
 void windowSize(SDL_Window *window, int *w, int *h) {
@@ -360,75 +361,76 @@ void render_digit_at(SDL_Renderer *renderer,
         number of digits
             https://www.geeksforgeeks.org/program-count-digits-integer-3-different-methods/
 */
-void hoursMinutesSeconds(Config *config, char str[9]) {
+void hoursMinutesSeconds(Config *config, char timestr[9]) {
         // TODO: support amount of hours >99
 
         const size_t time = (size_t) ceilf(fmaxf(config->displayed_time, 0.0f));
-        const size_t hours = time/60/60;
-        const size_t minutes = time/60%60;
-        const size_t seconds = time % 60;
-
         /*  hours   */
+        const size_t hours = time/60/60;
         const size_t hoursfirstdigit = hours/10;
         const size_t hoursseconddigit = hours%10;
-
+        
         /*  minutes */
+        const size_t minutes = time/60%60;
         const size_t minutesfirstdigit = minutes/10;
         const size_t minutesseconddigit = minutes%10;
-
+        
         /*  seconds */
+        const size_t seconds = time % 60;
         const size_t secondsfirstdigit = seconds/10;
         const size_t secondsseconddigit = seconds%10;
         
-        str[0] = hoursfirstdigit; 
+        timestr[0] = hoursfirstdigit; 
 
-        str[1] = hoursseconddigit; 
+        timestr[1] = hoursseconddigit; 
 
-        str[2] = COLON_INDEX;
+        timestr[2] = COLON_INDEX;
 
-        str[3] = minutesfirstdigit; 
+        timestr[3] = minutesfirstdigit; 
 
-        str[4] = minutesseconddigit; 
+        timestr[4] = minutesseconddigit; 
 
-        str[5] = COLON_INDEX;
+        timestr[5] = COLON_INDEX;
 
-        str[6] = secondsfirstdigit; 
+        timestr[6] = secondsfirstdigit; 
 
-        str[7] = secondsseconddigit; 
+        timestr[7] = secondsseconddigit; 
 
-        str[8] = '\0';
-        // TODO: support amount of hours >99
+        timestr[8] = '\0';
 }
 
 
 
-
-
-
-void createRendering(SDL_Renderer *renderer, 
-                     SDL_Texture *digits, 
-                     Config *config, 
-                     char str[9]) {
-        
+void backgroundColour(SDL_Renderer *renderer) {
         // black background color 
         SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
-        
+}
+
+void textureColour(SDL_Texture *digits, Config *config) {
         // texture colour, digits
         if (config->paused) {
             secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
         } else {
             secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
         }
-        
-        SDL_RenderClear(renderer);
+}
 
+void clearRenderer(SDL_Renderer *renderer) {
+        SDL_RenderClear(renderer);
+}
+
+
+void createRendering(SDL_Renderer *renderer, 
+                     SDL_Texture *digits, 
+                     Config *config, 
+                     char timestr[9]) {
 
         SDL_Rect src_rect;
         SDL_Rect dst_rect;
        
 
         for (int i = 0; i<8; ++i) {
-            srcRect(str[i],
+            srcRect(timestr[i],
                     (config->wiggle_index + i)%WIGGLE_COUNT,
                     &src_rect);
 
@@ -454,12 +456,12 @@ void createRendering(SDL_Renderer *renderer,
 
 
 
-void timeInWindowTitle(SDL_Window *window, Config *config, char str[9]) {
+void timeInWindowTitle(SDL_Window *window, Config *config, char timestr[9]) {
 
         /*  print time as window's title */
         char title[TITLE_CAP] ="Hello World!";
         //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
-        snprintf(title, sizeof(title), "%d%d:%d%d:%d%d - sowon", str[0], str[1], str[3], str[4], str[6], str[7]);
+        snprintf(title, sizeof(title), "%d%d:%d%d:%d%d - sowon", timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
 
         if (strcmp(config->prev_title, title) != 0) {
             SDL_SetWindowTitle(window, title);
@@ -578,29 +580,87 @@ int quitSDL() {
 
 
 
+
+
+
+
 /*  EVENTS  */
+
+typedef enum KeyDownEvent {
+    NONEKEY,
+    SPACE,
+    EQUALS,
+    MINUS,
+    ZERO,
+    SHIFTZERO,
+    F5,
+    F11
+} KeyDownEvent;
+
+/*  event key down  compute */
+void keyDownEventCompute(SDL_Window *window,
+                        SDL_Texture *digits, 
+                        Config *config, 
+                        KeyDownEvent keydownevent) {
+
+    switch(keydownevent) {
+        case NONEKEY:
+            break;
+
+        case SPACE:
+            pauseToggle(config);
+            break;
+
+        case EQUALS:
+            zoomInitial(config);
+            break;
+
+        case MINUS:
+            zoomOut(config);
+            break;
+
+        case ZERO:
+            zoomInitial(config);
+            break;
+
+        case SHIFTZERO:
+            zoomIn(config);
+            break;
+
+        case F5:
+            resetClock(config, digits);
+            break;
+        case F11:
+            fullScreenToggle(window);
+            break;
+    }
+}
+
+
+
 
 /*  event key down  */
 
-void keyDownCases(SDL_Event event, Config *config, SDL_Texture *digits, SDL_Window *window) {
+void keyDownEvent(SDL_Event event, KeyDownEvent *keydownevent) {
+
     // https://www.libsdl.org/release/SDL-1.2.15/docs/html/sdlkey.html
     switch (event.key.keysym.sym) {
         case SDLK_SPACE: {
-            pauseToggle(config);
+            *keydownevent = SPACE;
         } 
         break;
 
         case SDLK_KP_PLUS:
 
         case SDLK_EQUALS: {
-            zoomInitial(config);
+            *keydownevent = EQUALS;
         } 
         break;
 
         case SDLK_KP_MINUS:
 
         case SDLK_MINUS: {
-            zoomOut(config);
+            *keydownevent = MINUS;
         } 
         break;
 
@@ -609,41 +669,69 @@ void keyDownCases(SDL_Event event, Config *config, SDL_Texture *digits, SDL_Wind
         // in a spanish keyboard, 'equals key' is <shift+0> for zoom in
         case SDLK_0: {
             if (event.key.keysym.mod & KMOD_SHIFT) {
-                zoomIn(config);
+                *keydownevent = SHIFTZERO;
             }
             else 
-                zoomInitial(config);
+                *keydownevent = ZERO;
         } 
         break;
 
         case SDLK_F5: {
-            resetClock(config, digits);
+            *keydownevent = F5;
         } 
         break;
 
         case SDLK_F11: {
-            fullScreenToggle(window);
+            *keydownevent = F11;
         } 
         break;
     }
 }
 
-/*  mouse wheel */
 
-void mouseWheel(SDL_Event event, Config *config) {
+/*  MOUSE WHEEL EVENT */
+
+typedef enum MouseWheelEvent{
+    NONEWHEEL,
+    WHEELUP,
+    WHEELDOWN
+} MouseWheelEvent;
+
+
+void mouseWheelEvent(SDL_Event event, MouseWheelEvent *mousewheelevent) {
     if (SDL_GetModState() & KMOD_CTRL) {
         if (event.wheel.y > 0) {
-            config->user_scale += SCALE_FACTOR * config->user_scale;
-        } else if (event.wheel.y < 0) {
-            config->user_scale -= SCALE_FACTOR * config->user_scale;
+            *mousewheelevent = WHEELUP;
+        } 
+        else if (event.wheel.y < 0) {
+            *mousewheelevent = WHEELDOWN;
         }
+        else
+            *mousewheelevent = NONEWHEEL;
+    }
+}
+
+void mouseWheelCompute(MouseWheelEvent mousewheelevent, Config *config) {
+    switch(mousewheelevent) {
+        case NONEWHEEL:
+            break;
+
+        case WHEELUP:
+            config->user_scale += SCALE_FACTOR * config->user_scale;
+            break;
+        case WHEELDOWN:
+            config->user_scale -= SCALE_FACTOR * config->user_scale;
+            break;
     }
 }
 
 
 
 /* even loop    */
-void eventLoop(int *quit, Config *config, SDL_Window *window, SDL_Texture *digits) {
+void eventLoop(int *quit,
+               KeyDownEvent *keydownevent,
+               MouseWheelEvent *mousewheelevent) {
+
     SDL_Event event = {0};
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -652,11 +740,12 @@ void eventLoop(int *quit, Config *config, SDL_Window *window, SDL_Texture *digit
             } break;
 
             case SDL_KEYDOWN: {
-                keyDownCases(event, config, digits, window);
+                keyDownEvent(event, keydownevent);
+
             } break;
 
             case SDL_MOUSEWHEEL: {
-                mouseWheel(event, config);
+                mouseWheelEvent(event, mousewheelevent);
             } break;
 
             default: {
@@ -672,7 +761,6 @@ void eventLoop(int *quit, Config *config, SDL_Window *window, SDL_Texture *digit
 
 
 
-
 // UPDATE
 
 void wiggleCoolDown(Config *config) {
@@ -680,85 +768,108 @@ void wiggleCoolDown(Config *config) {
         config->wiggle_index++;
         config->wiggle_cooldown = WIGGLE_DURATION;
     }
-
-    config->wiggle_cooldown -= DELTA_TIME;
+    else {
+        config->wiggle_cooldown -= DELTA_TIME;
+    }
 }
 
 void updateTime(Config *config) {
-    switch (config->mode) {
-        case MODE_ASCENDING: {
-            config->displayed_time += DELTA_TIME;
-        } 
-        break;
-    
-        case MODE_COUNTDOWN: {
-            if (config->displayed_time > 1e-6) {
-                config->displayed_time -= DELTA_TIME;
+
+    if (!config->paused) {
+        switch (config->mode) {
+            case MODE_ASCENDING: {
+                config->displayed_time += DELTA_TIME;
             } 
-            else {
-                config->displayed_time = 0.0f;
-                if (config->exit_after_countdown) {
-                    quitSDL();
+            break;
+        
+            case MODE_COUNTDOWN: {
+                if (config->displayed_time > 1e-6) {
+                    config->displayed_time -= DELTA_TIME;
+                } 
+                else {
+                    config->displayed_time = 0.0f;
+                    if (config->exit_after_countdown) {
+                        quitSDL();
+                    }
                 }
-            }
-        } 
-        break;
-    
-        case MODE_CLOCK: {
-            time_t t = time(NULL);
-            struct tm *tm = localtime(&t);
-            config->displayed_time = tm->tm_sec
-                           + tm->tm_min  * 60.0f
-                           + tm->tm_hour * 60.0f * 60.0f;
-        } 
-        break;
+            } 
+            break;
+        
+            case MODE_CLOCK: {
+                time_t t = time(NULL);
+                struct tm *tm = localtime(&t);
+                config->displayed_time = tm->tm_sec
+                               + tm->tm_min  * 60.0f
+                               + tm->tm_hour * 60.0f * 60.0f;
+            } 
+            break;
+        }
     }
 }
 
-void updateConfig(SDL_Window *window, Config *config) {
-
-        // window width and height
-        windowSize(window, &config->w, &config->h);
-
-        // widow resize 
-        fitScale(config->w, config->h, &config->fit_scale);
+void updateWindowResizeAndZoomInOut(SDL_Window *window, Config *config) {
+    // window width and height
+    windowSize(window, &config->w, &config->h);
+    
+    // widow resize ratio
+    fitScale(config->w, config->h, &config->fit_scale);
         
-        // pen
-        initial_pen(config->w,
-                    config->h,
-                    config->user_scale,
-                    config->fit_scale,
-                    &config->pen_x, 
-                    &config->pen_y);
+}
 
-        wiggleCoolDown(config);
 
-        if (!config->paused) {
-            updateTime(config);
-        }
+void updatePen(Config *config) {
+    initial_pen(config->w,
+                config->h,
+                config->user_scale,
+                config->fit_scale,
+                &config->pen_x, 
+                &config->pen_y);
+    
 }
 
 // INFINITE LOOP
-void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digits, Config *config) {
+void infiniteLoop(Config *config) {
+
+    /* sdl  */
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    SDL_Texture *digits;
+    initSDL(&window, &renderer, &digits);
+
+
+
     int quit = 0;
     while (!quit) {
 
-        eventLoop(&quit, config, window, digits);
+        /*  events */
+        KeyDownEvent keydownevent = NONEKEY;
+        MouseWheelEvent mousewheelevent = NONEWHEEL;
+        eventLoop(&quit, &keydownevent, &mousewheelevent);
+        keyDownEventCompute(window, digits, config, keydownevent);
+        mouseWheelCompute(mousewheelevent, config);
         
-        char str[9];
-        hoursMinutesSeconds(config, str);
-        createRendering(renderer, digits, config, str);
-
-
-        timeInWindowTitle(window, config, str);
+        /* time */
+        char timestr[9];
+        hoursMinutesSeconds(config, timestr);
+        
+        /* render */
+        timeInWindowTitle(window, config, timestr);
+        backgroundColour(renderer);
+        textureColour(digits, config);
+        clearRenderer(renderer);
+        createRendering(renderer, digits, config, timestr);
         renderingToScreen(renderer);
-        
-        updateConfig(window, config);
+
+        updateWindowResizeAndZoomInOut(window, config);
+        updatePen(config);
+        wiggleCoolDown(config);
+        updateTime(config);
 
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
 
-
     }
+
+    quitSDL();
 }
 
 
@@ -767,27 +878,12 @@ void infiniteLoop(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *digit
 /*  MAIN    */
 int main(int argc, char **argv) {
     
+    /* parsing */
     Config config;
     argumentParser(argc, argv, &config);
-    defaultConfig(&config);
-
-
-    initializeSDL();
-
-    SDL_Window *window;
-    createWindow(&window);
-
-    SDL_Renderer *renderer;
-    createRenderer(window, &renderer);
-
-    SDL_Texture *digits;
-    digits = createTextureFromFile(renderer);
-
     
-
-    infiniteLoop(window, renderer, digits, &config);
+    infiniteLoop(&config);
     
-    quitSDL();
 
     return 0;
 }
