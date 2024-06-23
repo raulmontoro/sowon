@@ -99,22 +99,6 @@ void localTime(float *seconds) {
 /********** PARSER **********/
 
 
-typedef enum Mode {
-    MODE_ASCENDING = 0,
-    MODE_COUNTDOWN,
-    MODE_CLOCK,
-} Mode;
-
-typedef struct Arguments {
-    Mode mode;
-    int flag_p;
-    int flag_e;
-    float initialascendingclock;
-    float initialcountdownclock;  // float displayed_time_initial;
-} Arguments;
-
-
-
 /*  time parser     */
 float parse_time(const char *time) {
     float result = 0.0f;
@@ -158,6 +142,21 @@ float parse_time(const char *time) {
 
     return result;
 }
+
+
+typedef enum Mode {
+    MODE_ASCENDING = 0,
+    MODE_COUNTDOWN,
+    MODE_CLOCK,
+} Mode;
+
+typedef struct Arguments {
+    Mode mode;
+    int flag_p;
+    int flag_e;
+    float initialascendingclock;
+    float initialcountdownclock;  // float displayed_time_initial;
+} Arguments;
 
 
 /* argument parser  */
@@ -269,7 +268,7 @@ void initialState(Arguments arguments, State *state) {
 
         case MODE_COUNTDOWN:
             state->initialcountdownclock = arguments.initialcountdownclock;
-            state->displayed_time = initialcountdownclock; 
+            state->displayed_time = arguments.initialcountdownclock; 
             break;
 
         case MODE_CLOCK:
@@ -310,7 +309,7 @@ void createRenderer(SDL_Window *window, SDL_Renderer **renderer) {
 
 
 SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
-   SDL_Surface* image_surface;
+    SDL_Surface* image_surface;
     image_surface =  SDL_CreateRGBSurfaceFrom(
                         png,
                         (int) png_width,
@@ -327,13 +326,6 @@ SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
     SDL_Texture *digits = SDL_CreateTextureFromSurface(renderer, image_surface);
 
     secp(digits);
-
-    if (state->paused) {
-        secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
-    }
-    else {
-        secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
-    }
 
     return digits;
 }
@@ -470,6 +462,15 @@ void createRendering(SDL_Renderer *renderer,
                             &src_rect,
                             &dst_rect);
         }   
+
+
+        if (state->paused) {
+            secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
+        }
+        else {
+            secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
+        }
+
 
 }
 
@@ -823,7 +824,7 @@ void hoursMinutesSeconds(State *state, char timestr[9]) {
 
 void updateTime(State *state) {
     if (!state->paused) {
-        switch (state->paused) {
+        switch (state->mode) {
             case MODE_ASCENDING: {
                 state->displayed_time += DELTA_TIME;
             } 
@@ -894,14 +895,14 @@ void infiniteLoop(State *initstate) {
         /*  time string 00:00:00\0 
         */
         char timestr[9];
-        hoursMinutesSeconds(state, timestr);
+        hoursMinutesSeconds(&state, timestr);
         
         /* render */
-        timeInWindowTitle(window, state, timestr);
+        timeInWindowTitle(window, &state, timestr);
         backgroundColour(renderer);
-        textureColour(digits, state);
+        textureColour(digits, &state);
         clearRenderer(renderer);
-        createRendering(renderer, digits, state, timestr);
+        createRendering(renderer, digits, &state, timestr);
         renderingToScreen(renderer);
         
 
@@ -909,14 +910,14 @@ void infiniteLoop(State *initstate) {
         /*  events */
         ClockEvent clockevent = NONE;
         eventLoop(&quit, &clockevent);
-        clockeventCompute(window, initstate, state, clockevent);
+        clockeventCompute(window, initstate, &state, clockevent);
 
 
         /* update   */
-        updateWindowResizeAndZoomInOut(window, state);
-        updatePen(state);
-        wiggleCoolDown(state);
-        updateTime(state);
+        updateWindowResizeAndZoomInOut(window, &state);
+        updatePen(&state);
+        wiggleCoolDown(&state);
+        updateTime(&state);
         
 
         SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
@@ -945,4 +946,4 @@ int main(int argc, char **argv) {
     infiniteLoop(&initstate);
     
     return 0;
-WINDOW}
+}
