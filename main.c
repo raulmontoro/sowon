@@ -23,6 +23,29 @@
 
 
 
+/*  char    */
+#define CHAR_WIDTH (300 / 2)
+#define CHAR_HEIGHT (380 / 2)
+#define CHARS_COUNT 8
+
+/*  initial window size, text size    */
+#define TEXT_WIDTH (CHAR_WIDTH * CHARS_COUNT)
+#define TEXT_HEIGHT (CHAR_HEIGHT)
+
+
+
+/*  color   */
+#define MAIN_COLOR_R 220
+#define MAIN_COLOR_G 220
+#define MAIN_COLOR_B 220
+
+#define PAUSE_COLOR_R 220
+#define PAUSE_COLOR_G 120
+#define PAUSE_COLOR_B 120
+
+#define BACKGROUND_COLOR_R 24
+#define BACKGROUND_COLOR_G 24
+#define BACKGROUND_COLOR_B 24
 
 
 
@@ -586,20 +609,27 @@ void updatePen(State *state) {
     
 }
 
+void timeTitle(char prev_title[], int prev_title_size, char timestr[9]) {
+
+        /*  print time as window's title */
+        char title[prev_title_size];
+
+        //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
+
+        /*  title construction */
+        snprintf(title, prev_title_size, "sowon - %d%d:%d%d:%d%d", timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
+
+}
+
+
+
+
 // INFINITE LOOP
 void infiniteLoop(State *initstate) {
 
     /* sdl  */
-    WinConfig winconfig = {"sowon",
-                           0,
-                           0,
-                           TEXT_WIDTH,
-                           TEXT_HEIGHT,
-                           SDL_WINDOW_RESIZABLE};
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *digits;
-    initSDL(&window, &renderer, &digits, winconfig);
+    /* window same size as rendering text */
+    initSDL(TEXT_WIDTH, TEXT_HEIGHT, png);
 
     State state = *initstate;
 
@@ -612,8 +642,16 @@ void infiniteLoop(State *initstate) {
         hoursMinutesSeconds(&state, timestr);
         
         /* render */
-        timeInWindowTitle(window, state.prev_title, TITLE_CAP, timestr);
-        backgroundColour(renderer);
+        timeTitle(state.prev_title, TITLE_CAP, timestr);
+
+        if (strcmp(prev_title, title) != 0) {
+            windowTitle(title, TITLE_CAP);
+        }
+        
+        /* store old title, after new title has been rendered */
+        memcpy(title, prev_title, prev_title_size);
+        
+        colourBackground(BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
         
         if (state.paused) {
             textureColour(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B);

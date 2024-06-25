@@ -4,6 +4,32 @@
 
 ![demo](./demo.gif)
 
+## introduction
+### memcpy()
+C language library call  
+
+
+      The memcpy()  function  copies  n bytes from memory area src to memory area dest.
+      The memory areas must not overlap.
+
+      Use memmove(3) if the memory areas do overlap.
+
+
+    #include <string.h>
+    void *memcpy(void *dest, const void *src, size_t n);
+
+
+### snprintf()
+C Language library call 
+sprintf(), snprintf(), vsprintf(), and vsnprintf() write to the character string str. 
+The functions snprintf() and vsnprintf() write at most size bytes (including the terminating null byte ('\0')) to str.  
+
+All  of  these  functions write the output under the control of a format string that specifies how subsequent arguments (or
+arguments accessed via the variable-length argument facilities of stdarg(3)) are converted for output.
+
+     #include <stdio.h> 
+     int snprintf(char *str, size_t size, const char *format, ...);
+
 ## Build
 
 Dependencies: [SDL2](https://www.libsdl.org/download-2.0.php)

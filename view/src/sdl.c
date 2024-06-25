@@ -34,14 +34,6 @@ void secp(void *ptr)
 #define SPRITE_CHAR_WIDTH (300 / 2)
 #define SPRITE_CHAR_HEIGHT (380 / 2)
 
-/*  char    */
-#define CHAR_WIDTH (300 / 2)
-#define CHAR_HEIGHT (380 / 2)
-#define CHARS_COUNT 8
-
-/*  initial window size, text size    */
-#define TEXT_WIDTH (CHAR_WIDTH * CHARS_COUNT)
-#define TEXT_HEIGHT (CHAR_HEIGHT)
 
 
 
@@ -51,18 +43,6 @@ void secp(void *ptr)
 
 
 
-/*  color   */
-#define MAIN_COLOR_R 220
-#define MAIN_COLOR_G 220
-#define MAIN_COLOR_B 220
-
-#define PAUSE_COLOR_R 220
-#define PAUSE_COLOR_G 120
-#define PAUSE_COLOR_B 120
-
-#define BACKGROUND_COLOR_R 24
-#define BACKGROUND_COLOR_G 24
-#define BACKGROUND_COLOR_B 24
 
 
 
@@ -104,6 +84,7 @@ void initializeSDL() {
 
 /***********  WINDOW *************/
 
+
 typedef struct WinConfig {
     char *title;
     int positionx;
@@ -113,7 +94,15 @@ typedef struct WinConfig {
     SDL_WindowFlags flags;
 } WinConfig;
 
-void createWindow(SDL_Window **window, WinConfig winconfig) {
+void createWindow(int windowwidth, int windowheight, SDL_Window *window) {
+
+    WinConfig winconfig = {"sowon",
+                           0,
+                           0,
+                           windowwidth,
+                           windowheight,
+                           SDL_WINDOW_RESIZABLE};
+
     *window = SDL_CreateWindow(
                      winconfig.title,
                      winconfig.positionx, 
@@ -124,7 +113,13 @@ void createWindow(SDL_Window **window, WinConfig winconfig) {
     secp(window);
 }
 
-void createRenderer(SDL_Window *window, SDL_Renderer **renderer) {
+
+
+/***********  RENDERER *************/
+
+void createRenderer(SDL_Window *window, SDL_Renderer *renderer) {
+
+
     *renderer = SDL_CreateRenderer(window, -1,
                  SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
@@ -132,8 +127,17 @@ void createRenderer(SDL_Window *window, SDL_Renderer **renderer) {
 }
 
 
+/*  pre:    array of rgb pixels png
+    post:
 
-SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
+    notes:  https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
+*/
+SDL_Texture *createTexture(SDL_Renderer *renderer, 
+                           uint32_t png[],
+                           size_t png_width;
+                           size_t png_height;
+                           ) {
+
     SDL_Surface* image_surface;
     image_surface =  SDL_CreateRGBSurfaceFrom(
                         png,
@@ -148,19 +152,35 @@ SDL_Texture *createTextureFromFile(SDL_Renderer *renderer) {
 
     secp(image_surface);
     
-    SDL_Texture *digits = SDL_CreateTextureFromSurface(renderer, image_surface);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image_surface);
 
-    secp(digits);
+    secp(texture);
 
-    return digits;
+    return texture;
 }
 
 
-void initSDL(SDL_Window **window, SDL_Renderer **renderer, SDL_Texture **digits, WinConfig winconfig) {
+// void initSDL(SDL_Window **window, SDL_Renderer **renderer, SDL_Texture **digits, WinConfig winconfig) {
+/*  
+*/
+void initSDL(int windowwidth, 
+             int windowheight,
+             uint32_t png[], 
+             size_t png_width,
+             size_t png_height) {
+
     initializeSDL();
-    createWindow(window, winconfig);
-    createRenderer(*window, renderer);
-    *digits = createTextureFromFile(*renderer);
+
+    SDL_Window *window;
+    createWindow(windowwidth, windowheight, window);
+
+    SDL_Renderer *renderer;
+    createRenderer(window, renderer);
+
+    SDL_Texture *texture;
+    *texture = createTexture(*renderer, png);
+
+
 }
 
 
@@ -243,12 +263,17 @@ void render_digit_at(SDL_Renderer *renderer,
 
 
 
+/*  pre:
+    post:
 
-
-void backgroundColour(SDL_Renderer *renderer) {
-        // black background color 
-        SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
+    notes: https://wiki.libsdl.org/SDL2/SDL_SetRenderDrawColor
+*/
+void colourBackground(int r, int g, int b, int a) {
+    // black background color 
+    SDL_SetRenderDrawColor(renderer, (Uint8)r , (Uint8)g, (Uint8)b, (Uint8)a);
 }
+
+
 
 void textureColour(SDL_Texture *digits, int r, int g, int b) {
         // texture colour, digits
@@ -310,22 +335,15 @@ void createRendering(SDL_Renderer *renderer,
 
 
 
-
-
-void timeInWindowTitle(SDL_Window *window, char prev_title[], int prev_title_size, char timestr[9]) {
-
-        /*  print time as window's title */
-        char *title = "Bye World!";
-
-        //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
-        printf("%s - %d%d:%d%d:%d%d - sowon", title, timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
-
-        if (strcmp(prev_title, title) != 0) {
-            SDL_SetWindowTitle(window, title);
-        }
-
-        memcpy(title, prev_title, prev_title_size);
+/*  pre:
+    post:
+    notes:  https://wiki.libsdl.org/SDL2/SDL_SetWindowTitle
+*/
+void windowTitle(const char *str, int strsize) {
+            SDL_SetWindowTitle(window, str);
 }
+
+
 
 void renderingToScreen(SDL_Renderer *renderer) {
         SDL_RenderPresent(renderer);
