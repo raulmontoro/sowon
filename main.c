@@ -18,9 +18,6 @@
 
 
 
-#define WIGGLE_COUNT 3
-#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
-
 #define COLON_INDEX 10
 
 
@@ -615,7 +612,7 @@ void infiniteLoop(State *initstate) {
         hoursMinutesSeconds(&state, timestr);
         
         /* render */
-        timeInWindowTitle(window, &state, timestr);
+        timeInWindowTitle(window, state.prev_title, TITLE_CAP, timestr);
         backgroundColour(renderer);
         
         if (state.paused) {
@@ -626,7 +623,14 @@ void infiniteLoop(State *initstate) {
         }
 
         clearRenderer(renderer);
-        createRendering(renderer, digits, &state, timestr);
+        createRendering(renderer, digits,
+                                  state.wiggle_index, 
+                                  state.pen_x, 
+                                  state.pen_y, 
+                                  state.fit_scale, 
+                                  state.user_scale, 
+                                  state.paused, 
+                                  timestr);
         renderingToScreen(renderer);
         
 

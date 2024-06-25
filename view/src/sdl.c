@@ -45,6 +45,12 @@ void secp(void *ptr)
 
 
 
+#define WIGGLE_COUNT 3
+#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
+
+
+
+
 /*  color   */
 #define MAIN_COLOR_R 220
 #define MAIN_COLOR_G 220
@@ -256,7 +262,12 @@ void clearRenderer(SDL_Renderer *renderer) {
 
 void createRendering(SDL_Renderer *renderer, 
                      SDL_Texture *digits, 
-                     State *state, 
+                     size_t wiggle_index, 
+                     int pen_x,
+                     int pen_y,
+                     float fit_scale,
+                     float user_scale,
+                     int paused,
                      char timestr[9]) {
 
         SDL_Rect src_rect;
@@ -265,11 +276,13 @@ void createRendering(SDL_Renderer *renderer,
 
         for (int i = 0; i<8; ++i) {
             srcRect(timestr[i],
-                    (state->wiggle_index + i)%WIGGLE_COUNT,
+                    (wiggle_index + i)%WIGGLE_COUNT,
                     &src_rect);
 
-            dstRect(&state->pen_x, state->pen_y,
-                    state->user_scale, state->fit_scale, 
+            dstRect(&pen_x,
+                    pen_y,
+                    user_scale, 
+                    fit_scale, 
                     &dst_rect);
 
             render_digit_at(renderer, 
@@ -279,7 +292,7 @@ void createRendering(SDL_Renderer *renderer,
         }   
 
 
-        if (state->paused) {
+        if (paused) {
             secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
         }
         else {
@@ -299,18 +312,19 @@ void createRendering(SDL_Renderer *renderer,
 
 
 
-void timeInWindowTitle(SDL_Window *window, State *state, char timestr[9]) {
+void timeInWindowTitle(SDL_Window *window, char prev_title[], int prev_title_size, char timestr[9]) {
 
         /*  print time as window's title */
-        char title[TITLE_CAP] ="Hello World!";
-        //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
-        snprintf(title, sizeof(title), "%d%d:%d%d:%d%d - sowon", timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
+        char *title = "Bye World!";
 
-        if (strcmp(state->prev_title, title) != 0) {
+        //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
+        printf("%s - %d%d:%d%d:%d%d - sowon", title, timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
+
+        if (strcmp(prev_title, title) != 0) {
             SDL_SetWindowTitle(window, title);
         }
 
-        memcpy(title, state->prev_title, TITLE_CAP);
+        memcpy(title, prev_title, prev_title_size);
 }
 
 void renderingToScreen(SDL_Renderer *renderer) {
