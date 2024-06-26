@@ -2,6 +2,9 @@
 #include "../../digits.h"
 
 
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
 
 /********** ERROR HANDLER **********/
 
@@ -46,40 +49,10 @@ void secp(void *ptr)
 
 
 
-/*  pre:    
-    post:   cartesian coordinates
-            position where rendering starts 
-            to fit CHAR_COUNT characters 
-            at user_scale*fit_scale scale
-*/
-void initial_pen(int w, 
-                 int h,
-                 float user_scale,
-                 float fit_scale, 
-                 int *pen_x,
-                 int *pen_y) {
-    
-    // character width after scaling 
-    const int effective_digit_width = (int)floorf(
-                                            (float)CHAR_WIDTH*user_scale*fit_scale
-                                      );
-    // character height after scaling
-    const int effective_digit_height = (int)floorf(
-                                            (float)CHAR_HEIGHT*user_scale*fit_scale
-                                       );
-    
-    // position where rendering starts 
-    *pen_x = w/2 - effective_digit_width*CHARS_COUNT/2;
-    *pen_y = h/2 - effective_digit_height/2;
-}
 
 
 
 
-void initializeSDL() {
-    secc(SDL_Init(SDL_INIT_VIDEO));
-    secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
-}
 
 
 /***********  WINDOW *************/
@@ -103,13 +76,12 @@ void createWindow(int windowwidth, int windowheight, SDL_Window *window) {
                            windowheight,
                            SDL_WINDOW_RESIZABLE};
 
-    *window = SDL_CreateWindow(
-                     winconfig.title,
-                     winconfig.positionx, 
-                     winconfig.positiony, 
-                     winconfig.width,
-                     winconfig.height,
-                     winconfig.flags);
+    window = SDL_CreateWindow(winconfig.title,
+                               winconfig.positionx, 
+                               winconfig.positiony, 
+                               winconfig.width,
+                               winconfig.height,
+                               winconfig.flags);
     secp(window);
 }
 
@@ -120,8 +92,8 @@ void createWindow(int windowwidth, int windowheight, SDL_Window *window) {
 void createRenderer(SDL_Window *window, SDL_Renderer *renderer) {
 
 
-    *renderer = SDL_CreateRenderer(window, -1,
-                 SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1,
+               SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 
     secp(renderer);
 }
@@ -132,12 +104,12 @@ void createRenderer(SDL_Window *window, SDL_Renderer *renderer) {
 
     notes:  https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
 */
+// https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
 SDL_Texture *createTexture(SDL_Renderer *renderer, 
                            uint32_t png[],
-                           size_t png_width;
-                           size_t png_height;
-                           ) {
-
+                           size_t png_width,
+                           size_t png_height) {
+    // https://wiki.libsdl.org/SDL2/CategorySurface
     SDL_Surface* image_surface;
     image_surface =  SDL_CreateRGBSurfaceFrom(
                         png,
@@ -160,27 +132,20 @@ SDL_Texture *createTexture(SDL_Renderer *renderer,
 }
 
 
-// void initSDL(SDL_Window **window, SDL_Renderer **renderer, SDL_Texture **digits, WinConfig winconfig) {
-/*  
-*/
 void initSDL(int windowwidth, 
              int windowheight,
              uint32_t png[], 
              size_t png_width,
              size_t png_height) {
 
-    initializeSDL();
+    secc(SDL_Init(SDL_INIT_VIDEO));
+    secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
 
-    SDL_Window *window;
     createWindow(windowwidth, windowheight, window);
 
-    SDL_Renderer *renderer;
     createRenderer(window, renderer);
 
-    SDL_Texture *texture;
-    *texture = createTexture(*renderer, png);
-
-
+    texture = createTexture(renderer, png, png_width, png_height);
 }
 
 
@@ -223,13 +188,15 @@ void dstRect(int *pen_x,
              int pen_y, 
              float user_scale, 
              float fit_scale, 
-             SDL_Rect *dst_rect) {
+             SDL_Rect *dst_rect,
+             int charwidth,
+             int charheight) {
 
    // RESIZING DIGIT 
    // transforms digit chosen form image
    // new dimensions
-   const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * fit_scale);
-   const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * fit_scale);
+   const int effective_digit_width = (int) floorf((float) charwidth * user_scale * fit_scale);
+   const int effective_digit_height = (int) floorf((float) charheight * user_scale * fit_scale);
 
 
    *dst_rect = (SDL_Rect){*pen_x,
@@ -293,7 +260,15 @@ void createRendering(SDL_Renderer *renderer,
                      float fit_scale,
                      float user_scale,
                      int paused,
-                     char timestr[9]) {
+                     char timestr[9],
+                     int charwidth,
+                     int charheight,
+                     int pausecolorr,
+                     int pausecolorg,
+                     int pausecolorb,
+                     int maincolorr,
+                     int maincolorg,
+                     int maincolorb) {
 
         SDL_Rect src_rect;
         SDL_Rect dst_rect;
@@ -308,7 +283,9 @@ void createRendering(SDL_Renderer *renderer,
                     pen_y,
                     user_scale, 
                     fit_scale, 
-                    &dst_rect);
+                    &dst_rect,
+                    charwidth,
+                    charheight);
 
             render_digit_at(renderer, 
                             digits, 
@@ -318,10 +295,10 @@ void createRendering(SDL_Renderer *renderer,
 
 
         if (paused) {
-            secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
+            secc(SDL_SetTextureColorMod(digits, pausecolorr, pausecolorg, pausecolorb));
         }
         else {
-            secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
+            secc(SDL_SetTextureColorMod(digits, maincolorr, maincolorg, maincolorb));
         }
 
 
