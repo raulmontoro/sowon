@@ -647,12 +647,10 @@ void updatePen(State *state) {
     
 }
 
-void timeTitle(char prev_title[], int prev_title_size, char timestr[9]) {
+void timeTitle(int prev_title_size, char timestr[9]) {
 
         /*  print time as window's title */
         char title[prev_title_size];
-
-        //snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
 
         /*  title construction */
         snprintf(title, prev_title_size, "sowon - %d%d:%d%d:%d%d", timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
@@ -662,12 +660,16 @@ void timeTitle(char prev_title[], int prev_title_size, char timestr[9]) {
 
 
 
-// INFINITE LOOP
+/************************************************ INFINITE LOOP */
 void infiniteLoop(State *initstate) {
 
     /* sdl  */
     /* window same size as rendering text */
-    initSDL(TEXT_WIDTH, TEXT_HEIGHT, png);
+    initSDL(TEXT_WIDTH,
+            TEXT_HEIGHT,
+            png,
+            png_width,
+            png_height);
 
     State state = *initstate;
 
@@ -679,16 +681,24 @@ void infiniteLoop(State *initstate) {
         char timestr[9];
         hoursMinutesSeconds(&state, timestr);
         
+        
+
+
         /* render */
-        timeTitle(state.prev_title, TITLE_CAP, timestr);
+        timeTitle(TITLE_CAP, timestr);
 
         if (strcmp(prev_title, title) != 0) {
-            windowTitle(title, TITLE_CAP);
+            windowTitle(title);
         }
         
         /* store old title, after new title has been rendered */
         memcpy(title, prev_title, prev_title_size);
         
+        
+
+
+
+
         colourBackground(BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
         
         if (state.paused) {

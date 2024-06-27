@@ -316,7 +316,7 @@ void createRendering(SDL_Renderer *renderer,
     post:
     notes:  https://wiki.libsdl.org/SDL2/SDL_SetWindowTitle
 */
-void windowTitle(const char *str, int strsize) {
+void windowTitle(const char *str) {
             SDL_SetWindowTitle(window, str);
 }
 
