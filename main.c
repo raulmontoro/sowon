@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 /*  sdl */
-#include "./view/src/sdl.c"
+#include "./view/view.h"
 
 
 
@@ -22,6 +23,8 @@
 #define DELTA_TIME (1.0f / FPS)
 
 
+#define WIGGLE_COUNT 3
+#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
 
 
 #define COLON_INDEX 10
@@ -214,6 +217,7 @@ typedef struct State {
     /* cartesian coordinates of next digit */
     int pen_x;
     int pen_y;
+    int fullscreen;
 
 } State;
 
@@ -264,6 +268,7 @@ void initialState(Arguments arguments, State *state) {
                      TEXT_HEIGHT,
                      1.0f, 
                      1.0f,
+                     0,
                      0,
                      0};
 
@@ -348,10 +353,6 @@ void zoomOut(State *state) {
 }
 
 
-int quitSDL() {
-   SDL_Quit();
-   return 0;
-}
 
 
 
@@ -376,10 +377,9 @@ typedef enum ClockEvent {
 
 
 /*  event key down  compute */
-void clockeventCompute(SDL_Window *window,
-                        State *initstate,
-                        State *state, 
-                        ClockEvent clockevent) {
+void clockeventCompute(State *initstate,
+                       State *state, 
+                       ClockEvent clockevent) {
 
     switch(clockevent) {
         case NONE:
@@ -409,7 +409,7 @@ void clockeventCompute(SDL_Window *window,
             state = initstate;
             break;
         case F11:
-            fullScreenToggle(window);
+            fullScreenToggle();
             break;
 
         case WHEELUP:
@@ -667,17 +667,7 @@ void timeTitle(char *prev_title, int prev_title_size, char timestr[9], State sta
 
 
 /************************************************ INFINITE LOOP */
-void infiniteLoop(State *initstate) {
-
-    /* sdl  */
-    /* window same size as rendering text */
-    initSDL(TEXT_WIDTH,
-            TEXT_HEIGHT,
-            png,
-            png_width,
-            png_height);
-
-    State state = *initstate;
+void infiniteLoop(State *state) {
 
     int quit = 0;
     while (!quit) {
@@ -694,7 +684,7 @@ void infiniteLoop(State *initstate) {
 
 
 
-        colourBackground(BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
+        backgroundColour(BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
         
         if (state.paused) {
             textureColour(PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B);
@@ -718,7 +708,8 @@ void infiniteLoop(State *initstate) {
                         PAUSE_COLOR_B,
                         MAIN_COLOR_R,
                         MAIN_COLOR_G,
-                        MAIN_COLOR_B);
+                        MAIN_COLOR_B,
+                        WIGGLE_COUNT);
 
         renderingToScreen();
         
@@ -727,7 +718,7 @@ void infiniteLoop(State *initstate) {
         /*  events */
         ClockEvent clockevent = NONE;
         eventLoop(&quit, &clockevent);
-        clockeventCompute(window, initstate, &state, clockevent);
+        clockeventCompute(initstate, &state, clockevent);
 
 
         /* update   */
@@ -736,8 +727,7 @@ void infiniteLoop(State *initstate) {
         wiggleCoolDown(&state);
         updateTime(&state);
         
-
-        SDL_Delay((int) floorf(DELTA_TIME * 1000.0f));
+        delayInfiniteLoop(DELTA_TIME);
 
     }
 
@@ -758,7 +748,15 @@ int main(int argc, char **argv) {
     /* initial state */
     State initstate;
     initialState(arguments, &initstate);
-    
+
+    /* sdl  */
+    /* window same size as rendering text */
+    initSDL(TEXT_WIDTH,
+            TEXT_HEIGHT,
+            png,
+            png_width,
+            png_height);
+
     /*  loop */    
     infiniteLoop(&initstate);
     

@@ -6,9 +6,6 @@
 #define SPRITE_CHAR_WIDTH (300 / 2)
 #define SPRITE_CHAR_HEIGHT (380 / 2)
 
-#define WIGGLE_COUNT 3
-#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
-
 
 
 
@@ -88,24 +85,32 @@ void createRenderer() {
 }
 
 
+
+
+
+
+
+
+/***********  TEXTURE *************/
+
 /*  pre:    array of rgb pixels png
     post:
 
     notes:  https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
 */
 // https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
-SDL_Texture *createTexture(uint32_t png[],
-                           size_t png_width,
-                           size_t png_height) {
+void createTexture(uint32_t png[],
+                   size_t pngwidth,
+                   size_t pngheight) {
 
     // https://wiki.libsdl.org/SDL2/CategorySurface
     SDL_Surface* image_surface;
     image_surface =  SDL_CreateRGBSurfaceFrom(
                         png,
-                        (int) png_width,
-                        (int) png_height,
+                        (int) pngwidth,
+                        (int) pngheight,
                         32,
-                        (int) png_width * 4,
+                        (int) pngwidth * 4,
                         0x000000FF,
                         0x0000FF00,
                         0x00FF0000,
@@ -113,29 +118,11 @@ SDL_Texture *createTexture(uint32_t png[],
 
     secp(image_surface);
     
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image_surface);
+    texture = SDL_CreateTextureFromSurface(renderer, image_surface);
 
     secp(texture);
-
-    return texture;
 }
 
-
-void initSDL(int windowwidth, 
-             int windowheight,
-             uint32_t png[], 
-             size_t png_width,
-             size_t png_height) {
-
-    secc(SDL_Init(SDL_INIT_VIDEO));
-    secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
-
-    createWindow(windowwidth, windowheight);
-
-    createRenderer();
-
-    texture = createTexture(png, png_width, png_height);
-}
 
 
 
@@ -147,7 +134,7 @@ void windowSize(int *w, int *h) {
     SDL_GetWindowSize(window, w, h);
 }
 
-void fullScreenToggle(SDL_Window *window) {
+void fullScreenToggle() {
     Uint32 window_flags;
     secc(window_flags = SDL_GetWindowFlags(window));
 
@@ -255,7 +242,8 @@ void createRendering(size_t wiggle_index,
                      int pausecolorb,
                      int maincolorr,
                      int maincolorg,
-                     int maincolorb) {
+                     int maincolorb,
+                     int wigglecount) {
 
         SDL_Rect src_rect;
         SDL_Rect dst_rect;
@@ -263,7 +251,7 @@ void createRendering(size_t wiggle_index,
 
         for (int i = 0; i<8; ++i) {
             srcRect(timestr[i],
-                    (wiggle_index + i)%WIGGLE_COUNT,
+                    (wiggle_index + i)%wigglecount,
                     &src_rect);
 
             dstRect(&pen_x,
@@ -292,13 +280,6 @@ void createRendering(size_t wiggle_index,
 }
 
 
-
-
-
-
-
-
-
 /*  pre:
     post:
     notes:  https://wiki.libsdl.org/SDL2/SDL_SetWindowTitle
@@ -307,8 +288,34 @@ void windowTitle(const char *str) {
             SDL_SetWindowTitle(window, str);
 }
 
-
 void renderingToScreen() {
         SDL_RenderPresent(renderer);
 }
 
+
+
+void initSDL(int windowwidth, 
+             int windowheight,
+             uint32_t png[], 
+             size_t png_width,
+             size_t png_height) {
+
+    secc(SDL_Init(SDL_INIT_VIDEO));
+    secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
+
+    createWindow(windowwidth, windowheight);
+
+    createRenderer();
+
+    createTexture(png, png_width, png_height);
+}
+
+
+void delayInfiniteLoop(float deltatime) {
+    SDL_Delay((int) floorf(deltatime * 1000.0f));
+}
+
+
+void quitSDL() {
+   SDL_Quit();
+}
