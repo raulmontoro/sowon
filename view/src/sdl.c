@@ -2,9 +2,22 @@
 #include "../../digits.h"
 
 
+/*  sprite  */
+#define SPRITE_CHAR_WIDTH (300 / 2)
+#define SPRITE_CHAR_HEIGHT (380 / 2)
+
+#define WIGGLE_COUNT 3
+#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
+
+
+
+
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
+
+
+
 
 /********** ERROR HANDLER **********/
 
@@ -30,33 +43,7 @@ void secp(void *ptr)
 
 
 
-/***********  SDL *************/
-
-
-/*  sprite  */
-#define SPRITE_CHAR_WIDTH (300 / 2)
-#define SPRITE_CHAR_HEIGHT (380 / 2)
-
-
-
-
-#define WIGGLE_COUNT 3
-#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
-
-
-
-
-
-
-
-
-
-
-
-
-
 /***********  WINDOW *************/
-
 
 typedef struct WinConfig {
     char *title;
@@ -67,7 +54,7 @@ typedef struct WinConfig {
     SDL_WindowFlags flags;
 } WinConfig;
 
-void createWindow(int windowwidth, int windowheight, SDL_Window *window) {
+void createWindow(int windowwidth, int windowheight) {
 
     WinConfig winconfig = {"sowon",
                            0,
@@ -77,20 +64,22 @@ void createWindow(int windowwidth, int windowheight, SDL_Window *window) {
                            SDL_WINDOW_RESIZABLE};
 
     window = SDL_CreateWindow(winconfig.title,
-                               winconfig.positionx, 
-                               winconfig.positiony, 
-                               winconfig.width,
-                               winconfig.height,
-                               winconfig.flags);
+                              winconfig.positionx, 
+                              winconfig.positiony, 
+                              winconfig.width,
+                              winconfig.height,
+                              winconfig.flags);
     secp(window);
 }
 
 
 
+
+
+
 /***********  RENDERER *************/
 
-void createRenderer(SDL_Window *window, SDL_Renderer *renderer) {
-
+void createRenderer() {
 
     renderer = SDL_CreateRenderer(window, -1,
                SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
@@ -105,10 +94,10 @@ void createRenderer(SDL_Window *window, SDL_Renderer *renderer) {
     notes:  https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
 */
 // https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
-SDL_Texture *createTexture(SDL_Renderer *renderer, 
-                           uint32_t png[],
+SDL_Texture *createTexture(uint32_t png[],
                            size_t png_width,
                            size_t png_height) {
+
     // https://wiki.libsdl.org/SDL2/CategorySurface
     SDL_Surface* image_surface;
     image_surface =  SDL_CreateRGBSurfaceFrom(
@@ -141,11 +130,11 @@ void initSDL(int windowwidth,
     secc(SDL_Init(SDL_INIT_VIDEO));
     secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
 
-    createWindow(windowwidth, windowheight, window);
+    createWindow(windowwidth, windowheight);
 
-    createRenderer(window, renderer);
+    createRenderer();
 
-    texture = createTexture(renderer, png, png_width, png_height);
+    texture = createTexture(png, png_width, png_height);
 }
 
 
@@ -154,7 +143,7 @@ void initSDL(int windowwidth,
 
 
 
-void windowSize(SDL_Window *window, int *w, int *h) {
+void windowSize(int *w, int *h) {
     SDL_GetWindowSize(window, w, h);
 }
 
@@ -242,19 +231,17 @@ void colourBackground(int r, int g, int b, int a) {
 
 
 
-void textureColour(SDL_Texture *digits, int r, int g, int b) {
+void textureColour(int r, int g, int b) {
         // texture colour, digits
-            secc(SDL_SetTextureColorMod(digits, r, g, b));
+            secc(SDL_SetTextureColorMod(texture, r, g, b));
 }
 
-void clearRenderer(SDL_Renderer *renderer) {
+void clearRenderer() {
         SDL_RenderClear(renderer);
 }
 
 
-void createRendering(SDL_Renderer *renderer, 
-                     SDL_Texture *digits, 
-                     size_t wiggle_index, 
+void createRendering(size_t wiggle_index, 
                      int pen_x,
                      int pen_y,
                      float fit_scale,
@@ -288,17 +275,17 @@ void createRendering(SDL_Renderer *renderer,
                     charheight);
 
             render_digit_at(renderer, 
-                            digits, 
+                            texture, 
                             &src_rect,
                             &dst_rect);
         }   
 
 
         if (paused) {
-            secc(SDL_SetTextureColorMod(digits, pausecolorr, pausecolorg, pausecolorb));
+            secc(SDL_SetTextureColorMod(texture, pausecolorr, pausecolorg, pausecolorb));
         }
         else {
-            secc(SDL_SetTextureColorMod(digits, maincolorr, maincolorg, maincolorb));
+            secc(SDL_SetTextureColorMod(texture, maincolorr, maincolorg, maincolorb));
         }
 
 
@@ -321,8 +308,7 @@ void windowTitle(const char *str) {
 }
 
 
-
-void renderingToScreen(SDL_Renderer *renderer) {
+void renderingToScreen() {
         SDL_RenderPresent(renderer);
 }
 

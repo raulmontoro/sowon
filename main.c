@@ -626,10 +626,9 @@ void updateTime(State *state) {
 
 /********** WINDOW **********/
 
-
-void updateWindowResizeAndZoomInOut(SDL_Window *window, State *state) {
+void updateWindowResizeAndZoomInOut(State *state) {
     // window width and height
-    windowSize(window, &state->w, &state->h);
+    windowSize(&state->w, &state->h);
     
     // widow resize ratio
     fitScale(state->w, state->h, &state->fit_scale);
@@ -647,7 +646,7 @@ void updatePen(State *state) {
     
 }
 
-void timeTitle(int prev_title_size, char timestr[9]) {
+void timeTitle(char *prev_title, int prev_title_size, char timestr[9], State state) {
 
         /*  print time as window's title */
         char title[prev_title_size];
@@ -655,6 +654,13 @@ void timeTitle(int prev_title_size, char timestr[9]) {
         /*  title construction */
         snprintf(title, prev_title_size, "sowon - %d%d:%d%d:%d%d", timestr[0], timestr[1], timestr[3], timestr[4], timestr[6], timestr[7]);
 
+        if (strcmp(state.prev_title, title) != 0) {
+            windowTitle(title);
+        }
+
+        /*  store old title, 
+            after new title has been rendered */
+        memcpy(prev_title, title, prev_title_size);
 }
 
 
@@ -682,19 +688,8 @@ void infiniteLoop(State *initstate) {
         hoursMinutesSeconds(&state, timestr);
         
         
-
-
         /* render */
-        timeTitle(TITLE_CAP, timestr);
-
-        if (strcmp(prev_title, title) != 0) {
-            windowTitle(title);
-        }
-        
-        /* store old title, after new title has been rendered */
-        memcpy(title, prev_title, prev_title_size);
-        
-        
+        timeTitle(state.prev_title, TITLE_CAP, timestr, state);
 
 
 
@@ -702,30 +697,30 @@ void infiniteLoop(State *initstate) {
         colourBackground(BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
         
         if (state.paused) {
-            textureColour(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B);
+            textureColour(PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B);
         }
         else {
-            textureColour(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B);
+            textureColour(MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B);
         }
 
-        clearRenderer(renderer);
-        createRendering(renderer, digits,
-                                  state.wiggle_index, 
-                                  state.pen_x, 
-                                  state.pen_y, 
-                                  state.fit_scale, 
-                                  state.user_scale, 
-                                  state.paused, 
-                                  timestr,
-                                  CHAR_WIDTH,
-                                  CHAR_HEIGHT,
-                                  PAUSE_COLOR_R,
-                                  PAUSE_COLOR_G,
-                                  PAUSE_COLOR_B,
-                                  MAIN_COLOR_R,
-                                  MAIN_COLOR_G,
-                                  MAIN_COLOR_B);
-        renderingToScreen(renderer);
+        clearRenderer();
+        createRendering(state.wiggle_index, 
+                        state.pen_x, 
+                        state.pen_y, 
+                        state.fit_scale, 
+                        state.user_scale, 
+                        state.paused, 
+                        timestr,
+                        CHAR_WIDTH,
+                        CHAR_HEIGHT,
+                        PAUSE_COLOR_R,
+                        PAUSE_COLOR_G,
+                        PAUSE_COLOR_B,
+                        MAIN_COLOR_R,
+                        MAIN_COLOR_G,
+                        MAIN_COLOR_B);
+
+        renderingToScreen();
         
 
 
@@ -736,7 +731,7 @@ void infiniteLoop(State *initstate) {
 
 
         /* update   */
-        updateWindowResizeAndZoomInOut(window, &state);
+        updateWindowResizeAndZoomInOut(&state);
         updatePen(&state);
         wiggleCoolDown(&state);
         updateTime(&state);
