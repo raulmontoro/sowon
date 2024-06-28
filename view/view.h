@@ -1,6 +1,27 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
+
+/*  EVENTS  */
+typedef enum Event {
+    NONE,
+    SPACE,
+    EQUALS,
+    MINUS,
+    ZERO,
+    SHIFTZERO,
+    F5,
+    F11,
+    WHEELUP,
+    WHEELDOWN
+} Event;
+
+
+
+
+
+
 void createWindow(int windowwidth, int windowheight);
 void createRenderer();
 void createTexture(uint32_t png[], int pngwidth, int pngheight);
@@ -32,8 +53,13 @@ void quitSDL();
 
 void windowTitle(const char *str);
 void renderingToScreen();
+
+
+void eventLoop(int *quit, Event *event);
+
+
 void initSDL(int windowwidth, 
              int windowheight,
-             uint32_t png[], 
-             size_t png_width,
-             size_t png_height);
+             uint32_t imgagepixels[], 
+             size_t imgagepixels_width,
+             size_t imgagepixels_height);

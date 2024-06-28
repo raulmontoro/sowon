@@ -1,5 +1,4 @@
 #include <SDL.h>
-#include "../../digits.h"
 
 
 /*  sprite  */
@@ -99,18 +98,18 @@ void createRenderer() {
     notes:  https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
 */
 // https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
-void createTexture(uint32_t png[],
-                   size_t pngwidth,
-                   size_t pngheight) {
+void createTexture(uint32_t imagepixel[],
+                   size_t imagepixel_width,
+                   size_t imagepixel_height) {
 
     // https://wiki.libsdl.org/SDL2/CategorySurface
     SDL_Surface* image_surface;
     image_surface =  SDL_CreateRGBSurfaceFrom(
-                        png,
-                        (int) pngwidth,
-                        (int) pngheight,
+                        imagepixel,
+                        (int) imagepixel_width,
+                        (int) imagepixel_height,
                         32,
-                        (int) pngwidth * 4,
+                        (int) imagepixel_width * 4,
                         0x000000FF,
                         0x0000FF00,
                         0x00FF0000,
@@ -296,9 +295,9 @@ void renderingToScreen() {
 
 void initSDL(int windowwidth, 
              int windowheight,
-             uint32_t png[], 
-             size_t png_width,
-             size_t png_height) {
+             uint32_t imgagepixels[], 
+             size_t imgagepixels_width,
+             size_t imgagepixels_height) {
 
     secc(SDL_Init(SDL_INIT_VIDEO));
     secc(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear"));
@@ -307,12 +306,120 @@ void initSDL(int windowwidth,
 
     createRenderer();
 
-    createTexture(png, png_width, png_height);
+    createTexture(imagepixel, imagepixel__width, imagepixel__height);
 }
 
 
 void delayInfiniteLoop(float deltatime) {
     SDL_Delay((int) floorf(deltatime * 1000.0f));
+}
+
+
+
+
+
+
+
+
+/*  event key down  */
+
+void keyDownEvent(SDL_Event event, ClockEvent *clockevent) {
+
+    // https://www.libsdl.org/release/SDL-1.2.15/docs/html/sdlkey.html
+    switch (event.key.keysym.sym) {
+        case SDLK_SPACE: {
+            *clockevent = SPACE;
+        } 
+        break;
+
+        case SDLK_KP_PLUS:
+
+        case SDLK_EQUALS: {
+            *clockevent = EQUALS;
+        } 
+        break;
+
+        case SDLK_KP_MINUS:
+
+        case SDLK_MINUS: {
+            *clockevent = MINUS;
+        } 
+        break;
+
+        case SDLK_KP_0:
+        
+        // in a spanish keyboard, 'equals key' is <shift+0> for zoom in
+        case SDLK_0: {
+            if (event.key.keysym.mod & KMOD_SHIFT) {
+                *clockevent = SHIFTZERO;
+            }
+            else 
+                *clockevent = ZERO;
+        } 
+        break;
+
+        case SDLK_F5: {
+            *clockevent = F5;
+        } 
+        break;
+
+        case SDLK_F11: {
+            *clockevent = F11;
+        } 
+        break;
+    }
+}
+
+
+void mouseWheelEvent(SDL_Event event, ClockEvent *clockevent) {
+    if (SDL_GetModState() & KMOD_CTRL) {
+        if (event.wheel.y > 0) {
+            *clockevent = WHEELUP;
+        } 
+        else if (event.wheel.y < 0) {
+            *clockevent = WHEELDOWN;
+        }
+        else
+            *clockevent = NONE;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* even loop    */
+void eventLoop(int *quit,
+               Event *clockevent) {
+
+    SDL_Event event = {0};
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT: {
+                *quit = 1;
+            } break;
+
+            case SDL_KEYDOWN: {
+                keyDownEvent(event, clockevent);
+
+            } break;
+
+            case SDL_MOUSEWHEEL: {
+                mouseWheelEvent(event, clockevent);
+            } break;
+
+            default: {
+            }
+        }
+    }
 }
 
 
