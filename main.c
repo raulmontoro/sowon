@@ -1,7 +1,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <assert.h>
 #include <stdio.h>
+
+/*  strtof()
+    https://cplusplus.com/reference/cstdlib/strtof/
+*/
 #include <stdlib.h>
+
+/*  https://cplusplus.com/reference/cstring
+*/
 #include <string.h>
 #include <time.h>
 #include <math.h>
@@ -14,6 +21,15 @@
 
 
 
+
+
+
+
+
+/*  STOPWATCH   
+    TIMER/COUNTDOWN
+    CLOCK
+*/
 
 
 
@@ -83,43 +99,29 @@ void localTime(float *seconds) {
 
 
 
-/********** PARSER **********/
+/********** PARSER TIME **********/
 
 
 /*  time parser     */
-float parse_time(const char *time) {
+float parse_time(const char *time, timeunits) {
     float result = 0.0f;
-
+    
+    /*  12h
+        30m
+        45s 
+        12h30m45s
+    */
     while (*time) {
         char *endptr = NULL;
 
-        /* string to float */
+        /*  string 
+            to 
+            float */
         float x = strtof(time, &endptr);
 
         if (time == endptr) {
             fprintf(stderr, "`%s` is not a number\n", time);
             exit(1);
-        }
-
-        switch (*endptr) {
-            case '\0':
-
-            // seconds
-            case 's':
-                result += x;
-                break;
-            // minutes
-            case 'm':
-                result += x * 60.0f;
-                break;
-            // hours
-            case 'h':
-                result += x * 60.0f * 60.0f;
-                break;
-
-            default:
-                fprintf(stderr, "`%c` is an unknown time unit\n", *endptr);
-                exit(1);
         }
 
         time = endptr;
@@ -131,8 +133,17 @@ float parse_time(const char *time) {
 }
 
 
+
+
+
+
+
+
+/********** PARSER MAIN ARGUMENTS **********/
+
+
 typedef enum Mode {
-    MODE_ASCENDING = 0,
+    MODE_STOPWATCH = 0,
     MODE_COUNTDOWN,
     MODE_CLOCK,
 } Mode;
@@ -141,8 +152,9 @@ typedef struct Arguments {
     Mode mode;
     int flag_p;
     int flag_e;
-    float initialascendingclock;
-    float initialcountdownclock;  // float displayed_time_initial;
+    int hours;
+    int minutes;
+    int seconds;
 } Arguments;
 
 
@@ -152,26 +164,25 @@ void mainParser(int argc,
                 Arguments *arguments) {
     
     /*  default when no arguments in main */
-    *arguments =(Arguments){MODE_ASCENDING,
+    *arguments =(Arguments){MODE_STOPWATCH,
                             0,
                             0,
                             0,
-                            5*60};
+                            0,
+                            0};
 
     /* at least one argument */ 
     for (int i = 1; i < argc; ++i) {
 
-            // pause
             if (strcmp(argv[i], "-p") == 0) {
                 arguments->flag_p = 1;
             } 
-            // exist
             else if (strcmp(argv[i], "-e") == 0) {
                 arguments->flag_e = 1;
             }
-            else if (strcmp(argv[i], "ascending") == 0) {
-                arguments->mode = MODE_ASCENDING;
-                arguments->initialascendingclock = parse_time(argv[i+1]);
+            else if (strcmp(argv[i], "stopwatch") == 0) {
+                arguments->mode = MODE_STOPWATCH;
+                arguments->initialstopwatchclock = parse_time(argv[i+1]);
                 ++i;
             }
             else if (strcmp(argv[i], "countdown") == 0) {
@@ -183,13 +194,41 @@ void mainParser(int argc,
             else if (strcmp(argv[i], "clock") == 0) {
                 arguments->mode = MODE_CLOCK;
             }
-            // countdown
             else {
-                arguments->mode = MODE_COUNTDOWN;
-                arguments->initialcountdownclock = parse_time(argv[i]);
+                char *endptr = NULL;
+                float time = 0.0f;
+                char *timeunits = NULL;
+                time = strtof(argv[i], &endptr);
+
+                if (endptr != NULL) {
+                    switch(*endptr) {
+                        case '\0':
+
+                        // seconds
+                        case 's':
+                            seconds = time;
+                            break;
+                        // minutes
+                        case 'm':
+                            minutes = time;
+                            break;
+                        // hours
+                        case 'h':
+                            hours = time;
+                            break;
+
+                        default:
+                            fprintf(stderr, "`%c` is an unknown time unit\n", *endptr);
+                            exit(1);
+                    }
+                }
             }
+
+
     }
 }
+
+
 
 
 
@@ -204,7 +243,7 @@ typedef struct State {
     int exit_count_down;
     
     size_t wiggle_index;
-    float wiggle_cooldown;
+    float wiggle_cooldownARGUMENTS ;
 
     char prev_title[TITLE_CAP];
 
@@ -258,8 +297,8 @@ void initial_pen(int w,
 
 void initialState(Arguments arguments, State *state) {
 
-    // default initial state for ascending mode when no arguments 
-    *state = (State){MODE_ASCENDING,
+    // default initial state for stopwatch mode when no arguments 
+    *state = (State){MODE_STOPWATCH,
                      0.0f, 
                      0.0f,
                      0, 
@@ -283,7 +322,7 @@ void initialState(Arguments arguments, State *state) {
 
     /*  mode    */
     switch(state->mode) {
-        case MODE_ASCENDING:
+        case MODE_STOPWATCH:
             break;
 
         case MODE_COUNTDOWN:
@@ -493,7 +532,7 @@ void hoursMinutesSeconds(State *state, char timestr[9]) {
 void updateTime(State *state) {
     if (!state->paused) {
         switch (state->mode) {
-            case MODE_ASCENDING: {
+            case MODE_STOPWATCH: {
                 state->displayed_time += DELTA_TIME;
             } 
             break;
