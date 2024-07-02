@@ -200,19 +200,19 @@ void mainParser(int argc,
                 char *timeunits = NULL;
                 time = strtof(argv[i], &endptr);
 
-                if (endptr != NULL) {
+                if (endptr != argv[i]) {
                     switch(*endptr) {
                         case '\0':
+                            seconds = time;
 
-                        // seconds
                         case 's':
                             seconds = time;
                             break;
-                        // minutes
+
                         case 'm':
                             minutes = time;
                             break;
-                        // hours
+
                         case 'h':
                             hours = time;
                             break;
