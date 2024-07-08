@@ -1,16 +1,22 @@
-#include <stdint.h>
-#include <stdlib.h>
-
-
-
-/**************** WINDOWS */
-
-void createWindow(int windowwidth, int windowheight);
-void windowTitle(const char *str);
-
-
-
 /**************** RENDERER */
+
+
+/*  color   */
+#define MAIN_COLOR_R 220
+#define MAIN_COLOR_G 220
+#define MAIN_COLOR_B 220
+
+#define PAUSE_COLOR_R 220
+#define PAUSE_COLOR_G 120
+#define PAUSE_COLOR_B 120
+
+#define BACKGROUND_COLOR_R 24
+#define BACKGROUND_COLOR_G 24
+#define BACKGROUND_COLOR_B 24
+
+
+
+
 
 void createRenderer();
 void renderingToScreen();
@@ -38,17 +44,3 @@ void createRendering(size_t wiggle_index,
                      int maincolorr,
                      int maincolorg,
                      int maincolorb);
-
-void fullScreenToggle();
-void delayInfiniteLoop();
-void quitSDL();
-
-
-
-
-
-void initSDL(int windowwidth, 
-             int windowheight,
-             uint32_t imgagepixels[], 
-             size_t imgagepixels_width,
-             size_t imgagepixels_height);
