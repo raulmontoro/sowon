@@ -3,27 +3,21 @@
 
 
 
-/*  EVENTS  */
-typedef enum Event {
-    NONE,
-    SPACE,
-    EQUALS,
-    MINUS,
-    ZERO,
-    SHIFTZERO,
-    F5,
-    F11,
-    WHEELUP,
-    WHEELDOWN
-} Event;
-
-
-
-
-
+/**************** WINDOWS */
 
 void createWindow(int windowwidth, int windowheight);
+void windowTitle(const char *str);
+
+
+
+/**************** RENDERER */
+
 void createRenderer();
+void renderingToScreen();
+
+
+/**************** TEXTURE */
+
 void createTexture(uint32_t png[], int pngwidth, int pngheight);
 
 void backgroundColour(int r, int g, int b, int a);
@@ -45,17 +39,12 @@ void createRendering(size_t wiggle_index,
                      int maincolorg,
                      int maincolorb);
 
-void renderingToScreen();
 void fullScreenToggle();
 void delayInfiniteLoop();
 void quitSDL();
 
 
-void windowTitle(const char *str);
-void renderingToScreen();
 
-
-void eventLoop(int *quit, Event *event);
 
 
 void initSDL(int windowwidth, 
