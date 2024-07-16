@@ -41,12 +41,6 @@ float parse_time(const char *time, timeunits) {
 /********** PARSER MAIN ARGUMENTS **********/
 
 
-typedef enum Mode {
-    MODE_STOPWATCH = 0,
-    MODE_COUNTDOWN,
-    MODE_CLOCK,
-} Mode;
-
 typedef struct Arguments {
     Mode mode;
     int flag_p;

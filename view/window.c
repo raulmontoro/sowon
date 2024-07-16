@@ -1,3 +1,7 @@
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
+
 typedef struct WinConfig {
     char *title;
     int positionx;
