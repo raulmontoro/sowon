@@ -28,6 +28,7 @@ void errorHandlerB(uint32_t *data, const char *filepath) {
 
 
 
+/*  PARSER/LEXER   */
 const char *shift(int *argc, char ***argv) {
     assert(*argc > 0);
 
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
     const char *filepath = argv[0];
     
 
-    /*  LOAD PNG INTO AN ARRAY  */
+    /*  PNG FILE INTO AN PIXEL ARRAY  */
     int x; 
     int y; 
     int n;
