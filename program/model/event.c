@@ -1,7 +1,24 @@
+typedef enum ClockEvent {
+    NONE,
+    SPACE,
+    EQUALS,
+    MINUS,
+    ZERO,
+    SHIFTZERO,
+    F5,
+    F11,
+    WHEELUP,
+    WHEELDOWN
+} ClockEvent;
+
+
+
+
+
 /*  event key down  compute */
 void eventCompute(State *initstate,
                        State *state, 
-                       Event event) {
+                       ClockEvent event) {
 
     switch(clockevent) {
         case NONE:
@@ -43,6 +60,3 @@ void eventCompute(State *initstate,
             break;
     }
 }
-
-
-

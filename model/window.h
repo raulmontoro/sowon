@@ -1,4 +1,0 @@
-/*  voluntarily resizing
-    zoom in and zoom out
-    full screen
-*/

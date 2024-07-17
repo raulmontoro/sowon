@@ -1,5 +1,18 @@
+void reiniciateWiggleTime(State *state) {
+    state->wiggle_cooldown = WIGGLE_DURATION;
+}
+
+void decreaseWiggleTime(State *state) {
+    state->wiggle_cooldown -= DELTA_TIME;
+}
+
+void updateWiggleIndex(State *state) {
+    state->wiggle_index++;
+}
+
+
 /*  pre:
-    post:       float to char
+    post:
 
     notes:      https://stackoverflow.com/questions/10279718/append-char-to-string-in-c
                 https://www.w3schools.com/c/c_strings.php
@@ -10,13 +23,12 @@
                 number of digits
                     https://www.geeksforgeeks.org/program-count-digits-integer-3-different-methods/
 */
-void hoursMinutesSeconds(State *state, char timestr[9]) {
+void spriteIndexes(float displaytime, char timestr[9]) {
 
-        #define COLON_INDEX 10
 
         // TODO: support amount of hours >99
 
-        const size_t time = (size_t) ceilf(fmaxf(state->displayed_time, 0.0f));
+        const size_t time = (size_t) ceilf(fmaxf(state->displaytime, 0.0f));
         /*  hours   */
         const size_t hours = time/60/60;
         const size_t hoursfirstdigit = hours/10;
@@ -33,21 +45,13 @@ void hoursMinutesSeconds(State *state, char timestr[9]) {
         const size_t secondsseconddigit = seconds%10;
         
         timestr[0] = hoursfirstdigit; 
-
         timestr[1] = hoursseconddigit; 
-
         timestr[2] = COLON_INDEX;
-
         timestr[3] = minutesfirstdigit; 
-
         timestr[4] = minutesseconddigit; 
-
         timestr[5] = COLON_INDEX;
-
         timestr[6] = secondsfirstdigit; 
-
         timestr[7] = secondsseconddigit; 
-
         timestr[8] = '\0';
 }
 
