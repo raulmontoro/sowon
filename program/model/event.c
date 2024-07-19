@@ -1,53 +1,38 @@
-typedef enum ClockEvent {
-    NONE,
-    SPACE,
-    EQUALS,
-    MINUS,
-    ZERO,
-    SHIFTZERO,
-    F5,
-    F11,
-    WHEELUP,
-    WHEELDOWN
-} ClockEvent;
-
-
-
-
-
 /*  event key down  compute */
-void eventCompute(State *initstate,
-                       State *state, 
-                       ClockEvent event) {
+void eventCompute(ClockEvent event) {
 
     switch(clockevent) {
         case NONE:
+            break;
+
+        case R:
+            zoomInitial(state);
+            state = initstate;
+            break;
+
+        case P:
+            pauseToggle(state);
             break;
 
         case SPACE:
             pauseToggle(state);
             break;
 
-        case EQUALS:
-            zoomInitial(state);
+        case A:
             break;
 
-        case MINUS:
-            zoomOut(state);
+        case D:
             break;
 
-        case ZERO:
-            zoomInitial(state);
-            break;
-
-        case SHIFTZERO:
+        case W:
             zoomIn(state);
             break;
 
-        case F5:
-            state = initstate;
+        case S:
+            zoomOut(state);
             break;
-        case F11:
+
+        case F:
             fullScreenToggle();
             break;
 

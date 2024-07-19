@@ -1,3 +1,6 @@
+#include "window.h"
+#include "renderer.h"
+
 void initSDL(int windowwidth, 
              int windowheight,
              uint32_t imgagepixels[], 

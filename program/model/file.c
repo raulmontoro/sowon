@@ -1,4 +1,5 @@
 /*  https://www.w3schools.com/c/c_files_read.php
+    path    p
     read    r
     write   w
     append  a
@@ -15,17 +16,29 @@ void createFile(const char *p) {
 void writeToFile(const char *p, const char *t) {
     FILE *f;
     f = fopen(p, "w");
-    // fprintf(f, "%s", t);
     fputs(t, f);
+    fclose(f);
+}
+
+void writeToFileFormat(const char *p, const char *t) {
+    FILE *f;
+    f = fopen(p, "w");
+    fprintf(f, "%s", t);
     fclose(f);
 }
 
 void appendToFile(const char *p, const char *t) {
     FILE *f;
     f = fopen(p, "a");
-    //fprintf(f, "%s", t);
     fputs(t, f);
     fclose(f);
+}
+
+void appendToFileFormat(const char *p, const char *t) {
+    FILE *f;
+    f = fopen(p, "a");
+    fprintf(f, "%s", t);
+    fclose(f;
 }
     
 void readFile(const char *p, char *t, int s) {

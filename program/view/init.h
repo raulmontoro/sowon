@@ -1,5 +1,3 @@
-#include <SDL.h>
-
 void initSDL(int windowwidth, 
              int windowheight,
              uint32_t imgagepixels[], 
