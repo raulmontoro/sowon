@@ -1,5 +1,4 @@
-/*  event key down  compute */
-void eventCompute(ClockEvent event) {
+void eventClock(ClockEvent clockevent) {
 
     switch(clockevent) {
         case NONE:

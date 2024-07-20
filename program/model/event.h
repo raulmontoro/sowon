@@ -1,29 +1,20 @@
 /*  
-    start/stop/restart 
+    start/stop/reset/restart 
         r
-        stopwatch
-        countdown
 
     pause/resume
-        p barspace
-        stopwatch
-        countdown
+        p 
+        barspace
 
-    increase
-        a
-        time numeric values
+    increase/decrease 
+        a/d
 
-    decrease 
-        d
-        time numeric values
-
-    zoom
-        w wheelup
-        in  
-
-        s wheeldown
-        out 
+    zoom in/out
+        w/s
+        wheelup/wheeldown
 
     fullscreen
-        on/off f
+        f
 */
+
+void eventClock(ClockEvent clockevent);

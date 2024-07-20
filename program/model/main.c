@@ -1,30 +1,41 @@
-/*  PROGRAM NAME:   SOWON
+/*  PROGRAM NAME:
+        sowon
+
     DESCRIPTION:    
         features
             clock
             stopwatch
             countdown
-        events
-            pause
-            resume
-            reset
+
+        features 
+            start/stop/reset/restart
+                increase 
+                    time numeric values
+                decrease
+            pause/resume
+            zoom in/out
+            full screen
+                on/off
+            quit
+
+    USAGE
+        $ sowon
+            -m
+                clock
+                stopwatch
+                countdown
+
+            -t
+                h
+                m
+                s
 */
 
-
-#define _CRT_SECURE_NO_WARNINGS
-#include <assert.h>
-#include <stdio.h>
 
 /*  strtof()
     https://cplusplus.com/reference/cstdlib/strtof/
 */
 #include <stdlib.h>
-
-/*  https://cplusplus.com/reference/cstring
-*/
-#include <string.h>
-#include <time.h>
-#include <math.h>
 
 
 

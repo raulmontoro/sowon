@@ -38,12 +38,6 @@ float timeParser(const char *time, timeunits) {
 
 
 
-typedef enum Mode {
-    MODE_STOPWATCH,
-    MODE_COUNTDOWN,
-    MODE_CLOCK,
-} Mode;
-
 typedef struct State {
     Mode mode;
     float displaytime;
@@ -125,13 +119,19 @@ void initialState(Arguments arguments, State *state) {
 /********** MAIN ARGUMENTS PARSER **********/
 
 
+typedef enum Mode {
+    MODE_CLOCK,
+    MODE_STOPWATCH,
+    MODE_COUNTDOWN,
+} Mode;
+
 typedef struct Arguments {
-    Mode mode;
-    int flag_p;
-    int flag_e;
+    int flag_m;
+    int flag_t;
     int hours;
     int minutes;
     int seconds;
+    Mode mode;
 } Arguments;
 
 
