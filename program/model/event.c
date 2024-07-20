@@ -36,11 +36,11 @@ void eventClock(ClockEvent clockevent) {
             break;
 
         case WHEELUP:
-            state->user_scale += SCALE_FACTOR * state->user_scale;
+            state->zoomscale += SCALE_FACTOR * state->zoomscale;
             break;
 
         case WHEELDOWN:
-            state->user_scale -= SCALE_FACTOR * state->user_scale;
+            state->zoomscale -= SCALE_FACTOR * state->zoomscale;
             break;
     }
 }

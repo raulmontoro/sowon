@@ -1,12 +1,71 @@
+/*  zoom   */
+void reiniciateZoom(State *state) {
+    state->user_scale = 1.0f;
+}
+
+/* pre:
+   post: zoom in, represente in 'user_scale'
+*/
+void zoomIn(State *state) {
+    state->user_scale += SCALE_FACTOR*state->user_scale;
+}
+
+void zoomOut(State *state) {
+    state->user_scale -= SCALE_FACTOR*state->user_scale;
+}
+
 // window width and height
 void updateWindowResize(State *state) {
     windowSize(&state->w, &state->h);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*  fit scale   */
+
+/*  pre:
+    post: window resize adjusted
+*/
+void fitScale(int w, int h, float *fit_scale) {
+
+    *fit_scale = 1.0;
+
+    // width/height ratio
+    float text_aspect_ratio = (float) TEXT_WIDTH / (float) TEXT_HEIGHT;
+    float window_aspect_ratio = (float) w / (float) h;
+
+    if(text_aspect_ratio > window_aspect_ratio) {
+        *fit_scale = (float) w / (float) TEXT_WIDTH;
+    } else {
+        *fit_scale = (float) h / (float) TEXT_HEIGHT;
+    }
 }
 
 // widow resize ratio
 void updateWindowZoomInOut(State *state) {
     fitScale(state->w, state->h, &state->fit_scale);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*  pre:    
@@ -50,43 +109,7 @@ void setPen(int w,
 
 
 
-/*  fit scale   */
-
-/*  pre:
-    post: window resize adjusted
-*/
-void fitScale(int w, int h, float *fit_scale) {
-
-    *fit_scale = 1.0;
-
-    // width/height ratio
-    float text_aspect_ratio = (float) TEXT_WIDTH / (float) TEXT_HEIGHT;
-    float window_aspect_ratio = (float) w / (float) h;
-
-    if(text_aspect_ratio > window_aspect_ratio) {
-        *fit_scale = (float) w / (float) TEXT_WIDTH;
-    } else {
-        *fit_scale = (float) h / (float) TEXT_HEIGHT;
-    }
-}
 
 
 
 
-
-/*  zoom   */
-
-void reiniciateZoom(State *state) {
-    state->user_scale = 1.0f;
-}
-
-/* pre:
-   post: zoom in, represente in 'user_scale'
-*/
-void zoomIn(State *state) {
-    state->user_scale += SCALE_FACTOR*state->user_scale;
-}
-
-void zoomOut(State *state) {
-    state->user_scale -= SCALE_FACTOR*state->user_scale;
-}
