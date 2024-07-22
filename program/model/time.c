@@ -1,3 +1,6 @@
+#include <time.h>
+#include <math.h>
+
 /*  rendering frames  */
 #define FPS 60
 #define DELTA_TIME (1.0f / FPS)
