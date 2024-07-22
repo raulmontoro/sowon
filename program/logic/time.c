@@ -1,6 +1,23 @@
+/*  measuring time
+        sdl_delay()
+        timers
+         
+    pause/resume 
+        saved/recover state
+        p
+        space
+
+        r
+*/
 void updateTime(State *state) {
     if (!state->paused) {
         switch (state->mode) {
+
+            case MODE_CLOCK: {
+                getLocalTime(state);
+            } 
+            break;
+
             case MODE_STOPWATCH: {
                 increaseTime(state);
             } 
@@ -19,10 +36,6 @@ void updateTime(State *state) {
             } 
             break;
         
-            case MODE_CLOCK: {
-                getLocalTime(state);
-            } 
-            break;
         }
     }
 }
