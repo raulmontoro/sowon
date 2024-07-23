@@ -1,15 +1,20 @@
 /*  clock state
-    initialcountdown_hour
-    initialcountdown_minute
-    initialcountdown_second
+        clock
+            hour
+            minute
+            second
+        stopwatch
+        countdown 
+            initialcountdown_hour
+            initialcountdown_minute
+            initialcountdown_second
 
-    hour
-    minute
-    second
+
+    start/stop/restart
+    pause/resume
 
     spriterow
-
-    pause
+    spritecolumn
 */
 
 

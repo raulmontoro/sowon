@@ -11,12 +11,6 @@ void createRenderer() {
 
 /***********  TEXTURE *************/
 
-/*  pre:    array of rgb pixels png
-    post:
-
-    notes:  https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
-*/
-// https://wiki.libsdl.org/SDL2/SDL_CreateRGBSurfaceFrom
 void createTexture(uint32_t imagepixel[],
                    size_t imagepixel_width,
                    size_t imagepixel_height) {
@@ -44,11 +38,6 @@ void createTexture(uint32_t imagepixel[],
 
 
 
-void textureColour(int r, int g, int b) {
-        // texture colour, digits
-            secc(SDL_SetTextureColorMod(texture, r, g, b));
-}
-
 void clearRenderer() {
         SDL_RenderClear(renderer);
 }
@@ -58,7 +47,7 @@ void createRendering(size_t wiggle_index,
                      int pen_x,
                      int pen_y,
                      float fit_scale,
-                     float user_scale,
+                     float zoomscale,
                      int paused,
                      char timestr[9],
                      int charwidth,
@@ -82,7 +71,7 @@ void createRendering(size_t wiggle_index,
 
             dstRect(&pen_x,
                     pen_y,
-                    user_scale, 
+                    zoomscale, 
                     fit_scale, 
                     &dst_rect,
                     charwidth,
@@ -125,13 +114,36 @@ void render_digit_at(SDL_Renderer *renderer,
 
 
 
-/*  pre:
-    post:
 
-    notes: https://wiki.libsdl.org/SDL2/SDL_SetRenderDrawColor
-*/
+
+
+
+
+/*  color   */
+#define MAIN_COLOR_R 220
+#define MAIN_COLOR_G 220
+#define MAIN_COLOR_B 220
+
+#define PAUSE_COLOR_R 220
+#define PAUSE_COLOR_G 120
+#define PAUSE_COLOR_B 120
+
+#define BACKGROUND_COLOR_R 24
+#define BACKGROUND_COLOR_G 24
+#define BACKGROUND_COLOR_B 24
+
+
+
+
+
+
 void colourBackground(int r, int g, int b, int a) {
     // black background color 
     SDL_SetRenderDrawColor(renderer, (Uint8)r , (Uint8)g, (Uint8)b, (Uint8)a);
+}
+
+void textureColour(int r, int g, int b) {
+        // texture colour, digits
+        secc(SDL_SetTextureColorMod(texture, r, g, b));
 }
 

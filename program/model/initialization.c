@@ -1,65 +1,46 @@
-typedef struct State {
-    
-    Mode mode;
-    float hours;
-    float minutes;
-    float seconds;
-    int pause;
-    size_t wiggle_index;
+void initialState(Arguments *arguments) {
+    /*  window 
+            title   'title'
+            current window width    'w'
+            current window height   'h'
+            window resize scale     'windowscale'
+            zoom resize scale       'zoomscale'
+    */
 
+    char title[TITLE_CAP] = "Sowon";
+    int w = TEXT_WIDTH;
+    int h = TEXT_HEIGHT;;
+    float windowscale = 1.0f;
+    float zoomscale = 1.0f;;
 
-    char prev_title[TITLE_CAP];
+    Mode mode = arguments->mode;
+    int wiggle_index = 0;
+    int pause = 1;
 
-    /* current window width */
-    int w;
-
-    /* current window height */
-    int h;
-
-    float fit_scale;
-    float zoomscale;
     
     /* cartesian coordinates of next digit */
-    int pen_x;
-    int pen_y;
-    int fullscreen;
-
-} State;
-
-
-void initialState(Arguments arguments) {
-
-
-    // default initial state for stopwatch mode when no arguments 
-    *state = (State){MODE_CLOCK,
-                     0.0f, 
-                     0.0f,
-                     0.0f, 
-                     WIGGLE_DURATION, 
-                     "hello world",
-                     TEXT_WIDTH,
-                     TEXT_HEIGHT,
-                     1.0f, 
-                     1.0f,
-                     0,
-                     0,
-                     0};
-
-    state->mode = arguments.mode;
-    state->hours = arguments.hours;
-    state->minutes = arguments.minutes;
-    state->seconds = arguments.seconds;
-    state->pause = 1;
+    int pen_x = 0;
+    int pen_y = 0;
+    int fullscreen = 0;
     
 
     switch(state->mode) {
         case MODE_CLOCK:
+            float initialclock_hours   = arguments->hours;
+            float initialclock_minutes = arguments->minutes;
+            float initialclock_seconds = arguments->seconds;
             break;
 
         case MODE_STOPWATCH:
+            float initialstopwatch_hours;
+            float initialstopwatch_minutes;
+            float initialstopwatch_seconds;
             break;
 
         case MODE_COUNTDOWN:
+            float initialcountdown_hours;
+            float initialcountdown_minutes;
+            float initialcountdown_seconds;
             break;
 
     }

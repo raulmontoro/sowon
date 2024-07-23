@@ -13,7 +13,7 @@ void srcRect(int digit_index,
 
 void dstRect(int *pen_x,
              int pen_y, 
-             float user_scale, 
+             float zoomscale, 
              float fit_scale, 
              SDL_Rect *dst_rect,
              int charwidth,
@@ -22,8 +22,8 @@ void dstRect(int *pen_x,
    // RESIZING DIGIT 
    // transforms digit chosen form image
    // new dimensions
-   const int effective_digit_width = (int) floorf((float) charwidth * user_scale * fit_scale);
-   const int effective_digit_height = (int) floorf((float) charheight * user_scale * fit_scale);
+   const int effective_digit_width = (int) floorf((float) charwidth * zoomscale * fit_scale);
+   const int effective_digit_height = (int) floorf((float) charheight * zoomscale * fit_scale);
 
 
    *dst_rect = (SDL_Rect){*pen_x,
