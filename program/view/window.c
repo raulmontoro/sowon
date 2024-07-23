@@ -145,24 +145,24 @@ void updateWindowResize(State *state) {
 /*  pre:
     post: window resize adjusted
 */
-void fitScale(int w, int h, float *fit_scale) {
+void fitScale(int w, int h, float *windowscale) {
 
-    *fit_scale = 1.0;
+    *windowscale = 1.0;
 
     // width/height ratio
     float text_aspect_ratio = (float) TEXT_WIDTH / (float) TEXT_HEIGHT;
     float window_aspect_ratio = (float) w / (float) h;
 
     if(text_aspect_ratio > window_aspect_ratio) {
-        *fit_scale = (float) w / (float) TEXT_WIDTH;
+        *windowscale = (float) w / (float) TEXT_WIDTH;
     } else {
-        *fit_scale = (float) h / (float) TEXT_HEIGHT;
+        *windowscale = (float) h / (float) TEXT_HEIGHT;
     }
 }
 
 // widow resize ratio
 void updateWindowZoomInOut(State *state) {
-    fitScale(state->w, state->h, &state->fit_scale);
+    fitScale(state->w, state->h, &state->windowscale);
 }
 
 
@@ -181,23 +181,23 @@ void updateWindowZoomInOut(State *state) {
     post:   cartesian coordinates
             position where rendering starts 
             to fit CHAR_COUNT characters 
-            at zoomscale*fit_scale scale
+            at zoomscale*windowscale scale
 */
 void setPen(int w, 
             int h,
             float zoomscale,
-            float fit_scale, 
+            float windowscale, 
 
             int *pen_x,
             int *pen_y) {
     
     // character width after scaling 
     const int effective_digit_width = (int)floorf(
-                                            (float)CHAR_WIDTH*zoomscale*fit_scale
+                                            (float)CHAR_WIDTH*zoomscale*windowscale
                                       );
     // character height after scaling
     const int effective_digit_height = (int)floorf(
-                                            (float)CHAR_HEIGHT*zoomscale*fit_scale
+                                            (float)CHAR_HEIGHT*zoomscale*windowscale
                                        );
     
     // position where rendering starts 
