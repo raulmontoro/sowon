@@ -1,48 +1,32 @@
+/*  https://github.com/cofyc/argparse/tree/master
+*/
+
+/*  https://cplusplus.com/reference/cstring
+*/
 
 /*      -m clock
         -t 1h30m00s
         -t 1h 30m 00s
         -mclock-t1h30m15s
-*/
 
-/********** TIME PARSER **********/
-
-
-float timeParser(const char *time, timeunits) {
-    float result = 0.0f;
-    
-    /*  12h
+        12h
         30m
         45s 
         12h30m45s
-    */
-    while (*time) {
-        char *endptr = NULL;
-
-        /*  string 
-            to 
-            float */
-        float x = strtof(time, &endptr);
-
-        if (time == endptr) {
-            fprintf(stderr, "`%s` is not a number\n", time);
-            exit(1);
-        }
-
-        time = endptr;
-        if (*time) 
-            time += 1;
-    }
-
-    return result;
-}
+    
+*/
 
 
-/********** MAIN ARGUMENTS PARSER **********/
 
-/*  https://cplusplus.com/reference/cstring
+
+/*  strcmp()
 */
 #include <string.h>
+
+
+/* strtof()
+*/
+#include <stdlib.h>
 
 
 typedef enum Mode {
@@ -97,38 +81,49 @@ void mainParser(int argc,
             else if (strcmp(argv[i], "clock") == 0) {
                 arguments->mode = MODE_CLOCK;
             }
+            /*  string to float */
             else {
                 float float1 = 0.0f;
                 char *str1 = NULL;
                 char *endptr = NULL;
 
-                /*  string to float */
-                float1 = strtof(argv[i], &endptr);
+                str1 = argv[i];
+
+                float1 = strtof(str1, &endptr);
                 
                 /* float found and we are in a string */
-                if (endptr != argv[i]) {
-                    switch(*endptr) {
-                        case 'h':
-                            arguments->hours = float1;
-                            break;
+                
+                while (*str1) {
+                    if (endptr == argv[i]) {
+                        fprintf(stderr, "`%s` is not a number\n", time);
+                        exit(1);
+                    } 
+                    else {
+                        switch(*endptr) {
+                            case 'h':
+                                arguments->hours = float1;
+                                break;
 
-                        case 'm':
-                            arguments->minutes = float1;
-                            break;
+                            case 'm':
+                                arguments->minutes = float1;
+                                break;
 
-                        case 's':
-                            arguments->seconds = float1;
-                            break;
+                            case 's':
+                                arguments->seconds = float1;
+                                break;
 
-                        case '\0':
-                            arguments->seconds = float1;
+                            case '\0':
+                                arguments->seconds = float1;
+                                break;
 
-                        default:
-                            fprintf(stderr, "`%c` is an unknown time unit\n", *endptr);
-                            exit(1);
+                            default:
+                                break;
                     }
                 }
             }
+            // if *endptr is not \0
+            if (*endptr) {
+                ++endptr;
+            }
     }
 }
-

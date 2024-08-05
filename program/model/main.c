@@ -10,11 +10,14 @@
             countdown
 
         features 
-            start/stop/reset/restart
-                increase 
-                    time numeric values
-                decrease
+            start/stop
+            reset/restart
             pause/resume
+            
+            time numeric values
+                increase 
+                decrease
+
             zoom in/out
             full screen
                 on/off
@@ -55,8 +58,6 @@
     https://cplusplus.com/reference/cstdlib/strtof/
 */
 #include <stdlib.h>
-
-
 
 int main(int argc, char **argv) {
     

@@ -1,0 +1,244 @@
+JAVASCRIPT OBJECT NOTATION (JSON)
+----------
+https://www.json.org/json-en.html
+https://www.w3schools.com/js/js_json_intro.asp
+https://json.org/example.html
+
+data-interchange standard
+
+    text format
+    ----------
+lightweight 
+data-interchange format
+
+plain text written 
+in JavaScript object notation
+
+language independent
+JavaScript object 
+
+is a string
+
+
+    between computers, client, server
+    ----------
+used to 
+send data 
+between computers
+
+to a server in pure text format.
+form a server in pure text 
+
+and use it as a JavaScript object.
+You can work with data JSON
+as JavaScript objects,
+with no complicated parsing and translations.
+
+
+
+
+PARSING
+----------
+from computer friendly  to human readable representation
+
+SERIALIZATION
+----------
+from human readable to computer friendly
+array of bytes
+
+
+
+JAVASCRIPT 
+----------
+built in function 
+
+    JSON.stringify()
+    ----------
+    js object 
+    to 
+    json string
+    serialization
+
+    
+
+    JSON.parse()
+    ----------
+    json string 
+    to 
+    js objects
+    parsing
+    
+    
+    
+
+hexadecimal
+----------
+
+
+The JSON spec supports numbers 
+as values 
+but explicitly does not support octal or hexidecimal. 
+This is in part to increase interchange between languages. 
+
+You could just as easily represent 0xFF as a string, "0xFF" and parse that out when using it.
+
+
+JSON does not support hexadecimal numbers but they are supported in JSON5. json5.org
+
+
+
+
+
+Syntax 
+----------
+
+JSON Syntax Rules
+derived 
+from JavaScript object notation syntax:
+        
+        object  {}
+            unordered set
+            of name:value pairs
+
+        members
+            name/value pairs    :
+            separated by commas ,
+        
+        name/key
+
+        elements/values
+
+
+        elements/values:
+            "null"
+            boolean  "true", "false"
+            number
+            string   ""
+            array    []
+            object   {}
+
+            In JavaScript programming language
+            values can be all of the above, 
+            plus any other valid JavaScript expression, including:
+            
+                undefined
+                a date
+                a function
+        null
+
+        bool
+            
+        number
+            0
+            1-9
+            -1-9
+            1-9.1-9
+            1-9.1-9e1-9
+            1-9.1-9E1-9
+            1-9.1-9e-1-9
+            1-9.1-9E-1-9
+
+            no octal
+            no hexadecimal
+
+        string
+            zero or more 
+                Unicode characters
+                backslash escaptes
+
+
+
+
+
+
+
+
+1) example
+
+                {
+                    "glossary": {
+                        "title": "example glossary",
+                		"GlossDiv": {
+                            "title": "S",
+                			"GlossList": {
+                                "GlossEntry": {
+                                    "ID": "SGML",
+                					"SortAs": "SGML",
+                					"GlossTerm": "Standard Generalized Markup Language",
+                					"Acronym": "SGML",
+                					"Abbrev": "ISO 8879:1986",
+                					"GlossDef": {
+                                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                						"GlossSeeAlso": ["GML", "XML"]
+                                    },
+                					"GlossSee": "markup"
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+        - commentary
+
+
+                {"glossary" :   {"title"   :    "example glossary",
+                		         "GlossDiv": {  "title"     : "S",
+                			                    "GlossList" : { "GlossEntry"    : { "ID"        : "SGML",
+                					                                                "SortAs"    : "SGML",
+                					                                                "GlossTerm" : "Standard Generalized Markup Language",
+                					                                                "Acronym"   : "SGML",
+                					                                                "Abbrev"    : "ISO 8879:1986",
+                					                                                "GlossDef"  : { "para"           : "A meta-markup language, used to create markup languages such as DocBook.", 
+                                                                                                    "GlossSeeAlso"   : ["GML", "XML"]
+                                                                                                  },
+                					                                                "GlossSee"  : "markup"
+                                                                                  }
+                                                              }
+                                             }
+                                }
+                }
+
+
+
+                {"glossary": {"title":"example glossary","GlossDiv": {"title": "S","GlossList": {"GlossEntry": {"ID":"SGML","SortAs":"SGML","GlossTerm" : "Standard Generalized Markup Language","Acronym":"SGML","Abbrev":"ISO 8879:1986",
+                "GlossDef":{"para":"A meta-markup language, used to create markup languages such as DocBook.","GlossSeeAlso"   : ["GML", "XML"]},"GlossSee"  : "markup"}}}}}
+
+
+
+
+
+
+
+
+
+
+
+2) example
+
+{"menu": {
+  "id": "file",
+  "value": "File",
+  "popup": {
+    "menuitem": [
+      {"value": "New", "onclick": "CreateNewDoc()"},
+      {"value": "Open", "onclick": "OpenDoc()"},
+      {"value": "Close", "onclick": "CloseDoc()"}
+    ]
+  }
+}}
+
+-raul comments
+
+{"menu": {"id"      : "file",
+          "value"   : "File",
+          "popup"   : {"menuitem": [    {"value"   : "New", 
+                                  "onclick" : "CreateNewDoc()"},
+                                 {"value"   : "Open", 
+                                  "onclick" : "OpenDoc()"},
+                                 {"value"   : "Close",
+                                  "onclick" : "CloseDoc()"}
+                                ]
+                   }
+        }
+}
