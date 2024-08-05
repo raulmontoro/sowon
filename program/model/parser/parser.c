@@ -29,21 +29,31 @@
 #include <stdlib.h>
 
 
-typedef enum Mode {
-    MODE_CLOCK,
-    MODE_STOPWATCH,
-    MODE_COUNTDOWN,
-} Mode;
+int isNumber(char c) {
+    return '0' <= c <= '9';
+}
 
-typedef struct Arguments {
-    int flag_m;
-    int flag_t;
-    int hours;
-    int minutes;
-    int seconds;
-    Mode mode;
-} Arguments;
+int isChararcter(char c) {
+    return 'a' <= c <= 'z' ||
+           'A' <= c <= 'Z';
+}
 
+int isUppercase(char c) {
+    return 'A' <= c <= 'Z';
+}
+
+
+
+void parser(int argc, char **argv) {
+    if (argc == 1) {
+    }
+    else {
+        for (int i=1; i<argc; ++i) {
+            char *a = (argv + i)
+        }
+    }
+
+}
 
 /* argument parser  */
 void mainParser(int argc,
