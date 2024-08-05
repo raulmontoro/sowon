@@ -42,6 +42,17 @@ int isUppercase(char c) {
     return 'A' <= c <= 'Z';
 }
 
+int sizeArgument(char *c) {
+    int s = 0;
+
+    char *a = c;
+    while (*c) {
+        ++s;
+        ++a;
+    }
+    return s;
+}
+
 
 
 void parser(int argc, char **argv) {
@@ -49,6 +60,7 @@ void parser(int argc, char **argv) {
     }
     else {
         for (int i=1; i<argc; ++i) {
+            int s = sizeArgument(argv);
             char *a = (argv + i)
         }
     }
