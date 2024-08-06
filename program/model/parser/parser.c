@@ -1,10 +1,7 @@
 /*  https://github.com/cofyc/argparse/tree/master
-*/
+    https://cplusplus.com/reference/cstring
 
-/*  https://cplusplus.com/reference/cstring
-*/
-
-/*      -m clock
+        -m clock
         -t 1h30m00s
         -t 1h 30m 00s
         -mclock-t1h30m15s
@@ -13,8 +10,8 @@
         30m
         45s 
         12h30m45s
-    
 */
+
 
 
 
