@@ -46,11 +46,38 @@ int sizeArgument(char *c) {
     int s = 0;
 
     char *a = c;
-    while (*c) {
+    while (*a != '\0') {
         ++s;
         ++a;
     }
     return s;
+}
+
+int compareStringsB(char *a, char *b, int s) {
+    int b = 1;
+    int i = 0;
+    while(b && i<s) {
+        b = *a == *b;
+        ++a;
+        ++b;
+    }
+}
+
+int compareStringA(char *a, int s) {
+    if (compareStringsB(a, "-m")) {
+    }
+    
+    if (compareStringsB(a, "-t")) {
+    }
+    
+    if (compareStringsB(a, "clock")) {
+    }
+
+    if (compareStringsB(a, "stopwatch")) {
+    }
+
+    if (compareStringsB(a, "countdown")) {
+    }
 }
 
 
@@ -60,12 +87,22 @@ void parser(int argc, char **argv) {
     }
     else {
         for (int i=1; i<argc; ++i) {
-            int s = sizeArgument(argv);
-            char *a = (argv + i)
+            if (*argv != '-') {
+            }
+            else {
+                int s = sizeArgument(argv);
+                compareStringsA(*argv, s);
+            }
         }
     }
 
 }
+
+
+
+
+
+
 
 /* argument parser  */
 void mainParser(int argc,

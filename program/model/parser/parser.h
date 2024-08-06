@@ -6,14 +6,9 @@ typedef enum Mode {
 
 typedef struct Arguments {
     int flag_m;
-    Mode mode;
-
-    int flag_h;
+    int flag_t;
     int hours;
-
-    int flag_m;
     int minutes;
-
-    int flag_s;
     int seconds;
+    Mode mode;
 } Arguments;
