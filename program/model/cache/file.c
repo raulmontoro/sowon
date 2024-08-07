@@ -1,10 +1,3 @@
-/*  https://www.w3schools.com/c/c_files_read.php
-    path    p
-    read    r
-    write   w
-    append  a
-*/
-
 #include <stdio.h>
 
 void createFile(const char *p) {
@@ -53,11 +46,3 @@ void readFile(const char *p, char *t, int s) {
     fclose(f);
 }
 
-int main() {
-    const char *p = "../rsc/filename.txt";
-    createFile(p);
-    writeToFile(p, "Hello World!\n");
-    appendToFile(p, "Bye World!\n");
-    char t[100];
-    readFile(p, t, 100);
-}

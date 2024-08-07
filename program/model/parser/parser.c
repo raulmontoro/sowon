@@ -1,20 +1,4 @@
-/*  https://github.com/cofyc/argparse/tree/master
-    https://cplusplus.com/reference/cstring
-
-        -m clock
-        -t 1h30m00s
-        -t 1h 30m 00s
-        -mclock-t1h30m15s
-
-        12h
-        30m
-        45s 
-        12h30m45s
-*/
-
-
-
-
+#include "error.h"
 
 /*  strcmp()
 */
@@ -30,6 +14,16 @@ int isNumber(char c) {
     return '0' <= c <= '9';
 }
 
+int buildInteger(char * c) {
+    int i = 0;
+    int s = sizeString(c);
+    while (*c != '\0') {
+        i += *c-'0'*power10(s);
+        --s;
+    }
+    
+}
+
 int isChararcter(char c) {
     return 'a' <= c <= 'z' ||
            'A' <= c <= 'Z';
@@ -39,7 +33,7 @@ int isUppercase(char c) {
     return 'A' <= c <= 'Z';
 }
 
-int sizeArgument(char *c) {
+int sizeString(char *c) {
     int s = 0;
 
     char *a = c;
@@ -51,135 +45,61 @@ int sizeArgument(char *c) {
 }
 
 int compareStringsB(char *a, char *b, int s) {
-    int b = 1;
+    
+    int s2 = sizeString(*b);
+    int b = s == s2;
+
     int i = 0;
     while(b && i<s) {
         b = *a == *b;
         ++a;
-        ++b;
+        ++i;
     }
 }
 
-int compareStringA(char *a, int s) {
-    if (compareStringsB(a, "-m")) {
-    }
+int compareFlags(char *a, Arguments *b) {
+
+    int s = sizeString(*argv);
+
+    b->flag_m = compareStringsB(a, "-m", s);
     
-    if (compareStringsB(a, "-t")) {
-    }
+    b->flag_t = compareStringsB(a, "-t", s);
     
-    if (compareStringsB(a, "clock")) {
+}
+
+int compareFlagsValues () {
+    if (compareStringsB(a, "clock", s)) {
     }
 
-    if (compareStringsB(a, "stopwatch")) {
+    if (compareStringsB(a, "stopwatch", s)) {
     }
 
-    if (compareStringsB(a, "countdown")) {
+    if (compareStringsB(a, "countdown", s)) {
     }
 }
 
+void defaultConfig(Argument *a) {
+    a->flag_m = 0;
+    a->flag_t = 0;
+    a->hours = 0;
+    a->minutes = 0;
+    a->seconds = 0;
+    a->mode = clock;
+}
 
 
-void parser(int argc, char **argv) {
+void parser(int argc, char **argv, Arguments *a) {
     if (argc == 1) {
+        defaultConfig(a);
     }
     else {
         for (int i=1; i<argc; ++i) {
-            if (*argv != '-') {
+            if (*argv == '-') {
+                compareFlags(*argv, a);
             }
-            else {
-                int s = sizeArgument(argv);
-                compareStringsA(*argv, s);
+            else if (isNumber(*argv)) {
+                int i = buildInteger(*argv);
             }
         }
-    }
-
-}
-
-
-
-
-
-
-
-/* argument parser  */
-void mainParser(int argc,
-                char **argv,
-                Arguments *arguments) {
-    
-    /*  default when no arguments in main */
-    *arguments =(Arguments){0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            CLOCK};
-
-    /* at least one argument */ 
-    for (int i = 1; i < argc; ++i) {
-
-            if (strcmp(argv[i], "-m") == 0) {
-                arguments->flag_m = 1;
-            } 
-            else if (strcmp(argv[i], "-t") == 0) {
-                arguments->flag_t = 1;
-            }
-            else if (strcmp(argv[i], "stopwatch") == 0) {
-                arguments->mode = MODE_STOPWATCH;
-                arguments->initialstopwatchclock = parse_time(argv[i+1]);
-                ++i;
-            }
-            else if (strcmp(argv[i], "countdown") == 0) {
-                arguments->mode = MODE_COUNTDOWN;
-                arguments->initialcountdownclock= parse_time(argv[i+1]);
-                ++i;
-            }
-            // time clock
-            else if (strcmp(argv[i], "clock") == 0) {
-                arguments->mode = MODE_CLOCK;
-            }
-            /*  string to float */
-            else {
-                float float1 = 0.0f;
-                char *str1 = NULL;
-                char *endptr = NULL;
-
-                str1 = argv[i];
-
-                float1 = strtof(str1, &endptr);
-                
-                /* float found and we are in a string */
-                
-                while (*str1) {
-                    if (endptr == argv[i]) {
-                        fprintf(stderr, "`%s` is not a number\n", time);
-                        exit(1);
-                    } 
-                    else {
-                        switch(*endptr) {
-                            case 'h':
-                                arguments->hours = float1;
-                                break;
-
-                            case 'm':
-                                arguments->minutes = float1;
-                                break;
-
-                            case 's':
-                                arguments->seconds = float1;
-                                break;
-
-                            case '\0':
-                                arguments->seconds = float1;
-                                break;
-
-                            default:
-                                break;
-                    }
-                }
-            }
-            // if *endptr is not \0
-            if (*endptr) {
-                ++endptr;
-            }
     }
 }

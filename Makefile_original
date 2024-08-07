@@ -1,12 +1,13 @@
-COMMON_CFLAGS=		-Wall -Wextra -std=c99 -pedantic
-CFLAGS+=		`pkg-config --cflags sdl2` $(COMMON_CFLAGS)
-COMMON_LIBS=		-lm
-LIBS=			`pkg-config --libs sdl2` $(COMMON_LIBS)
-PREFIX?=		/usr/local
-INSTALL?=		install
+CC=gcc
+
+FLAGS= -Wall -Wextra -std=c99 -pedantic
+FLAGS= $(FLAGS) `pkg-config --cflags sdl2`
+
+LIBS= -lm
+LIBS= $(LIBS) `pkg-config --libs sdl2` $(COMMON_LIBS)
 
 .PHONY: all
-all: Makefile sowon man
+all: sowon
 
 sowon: main.c digits.h
 	$(CC) $(CFLAGS) -o sowon main.c $(LIBS)
